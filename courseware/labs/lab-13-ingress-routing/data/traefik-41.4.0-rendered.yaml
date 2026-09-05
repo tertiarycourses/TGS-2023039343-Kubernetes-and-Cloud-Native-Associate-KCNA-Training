@@ -1,0 +1,306 @@
+# VENDORED, PINNED CONTROLLER MANIFEST — optional path, README Appendix C.
+#
+# Offline / no-Helm alternative to the `helm install` in Appendix C. It is the
+# byte-for-byte output of this exact command (Helm v4.2.4):
+#
+#   helm template meridian-edge traefik \
+#     --repo https://traefik.github.io/charts --version 41.4.0 \
+#     --namespace kcna-lab13-ingress --skip-crds --kube-version 1.31.0 \
+#     -f data/traefik-lab-values.yaml
+#
+# Chart:       traefik 41.4.0
+#              sha256 1470656b1c93e8637daaa19cdb30633c5ea691768a9aab3214da3ee822c4a9f0
+#              (digest published in https://traefik.github.io/charts/index.yaml)
+# App version: v3.7.12  -> image docker.io/traefik:v3.7.12
+#
+# It lives in data/ and not manifests/ because it is vendored third-party
+# output, not lab-authored Kubernetes source. Apply it only AFTER
+# manifests/70-namespace-ingress.yaml, which creates kcna-lab13-ingress.
+#
+# Licence: the traefik-helm-chart is Apache License 2.0. The chart's LICENSE is
+# vendored alongside this file as data/TRAEFIK-CHART-LICENSE.txt.
+# Upstream: https://github.com/traefik/traefik-helm-chart
+#
+# Six objects, three of them cluster-scoped:
+#   ServiceAccount      kcna-lab13-ingress/meridian-edge-traefik   (namespaced)
+#   ClusterRole         meridian-edge-traefik-kcna-lab13-ingress   (CLUSTER-SCOPED)
+#   ClusterRoleBinding  meridian-edge-traefik-kcna-lab13-ingress   (CLUSTER-SCOPED)
+#   Service             kcna-lab13-ingress/meridian-edge-traefik   (namespaced, ClusterIP)
+#   Deployment          kcna-lab13-ingress/meridian-edge-traefik   (namespaced)
+#   IngressClass        meridian-edge                              (CLUSTER-SCOPED)
+#
+# Statically validated: kubeconform -strict -kubernetes-version 1.31.0 reports
+# 6 resources, 6 valid, 0 skipped — no CRD schemas are required, because
+# providers.kubernetesCRD is disabled and the install uses --skip-crds.
+---
+# Source: traefik/templates/rbac/serviceaccount.yaml
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: meridian-edge-traefik
+  namespace: kcna-lab13-ingress
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+    helm.sh/chart: traefik-41.4.0
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: false
+---
+# Source: traefik/templates/rbac/clusterrole.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: meridian-edge-traefik-kcna-lab13-ingress
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+    helm.sh/chart: traefik-41.4.0
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - nodes
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingressclasses
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - list
+      - watch
+
+---
+# Source: traefik/templates/rbac/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: meridian-edge-traefik-kcna-lab13-ingress
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+    helm.sh/chart: traefik-41.4.0
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: meridian-edge-traefik-kcna-lab13-ingress
+subjects:
+  - kind: ServiceAccount
+    name: meridian-edge-traefik
+    namespace: kcna-lab13-ingress
+---
+# Source: traefik/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: meridian-edge-traefik
+  namespace: kcna-lab13-ingress
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+    helm.sh/chart: traefik-41.4.0
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+  ports:
+  - port: 80
+    name: web
+    targetPort: web
+    protocol: TCP
+  - port: 443
+    name: websecure
+    targetPort: websecure
+    protocol: TCP
+---
+# Source: traefik/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meridian-edge-traefik
+  namespace: kcna-lab13-ingress
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+    helm.sh/chart: traefik-41.4.0
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+      app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  minReadySeconds: 0
+  
+  template: 
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9100"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: traefik
+        helm.sh/chart: traefik-41.4.0
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - --entryPoints.metrics.address=:9100/tcp
+        - --entryPoints.traefik.address=:8080/tcp
+        - --entryPoints.web.address=:8000/tcp
+        - --entryPoints.websecure.address=:8443/tcp
+        - --api.dashboard=true
+        - --ping=true
+        - --metrics.prometheus=true
+        - --metrics.prometheus.entrypoint=metrics
+        - --providers.kubernetesingress
+        - --providers.kubernetesingress.allowEmptyServices=true
+        - --providers.kubernetesingress.strictPrefixMatching=true
+        - --providers.kubernetesingress.namespaces=kcna-lab13
+        - --entryPoints.websecure.http.tls=true
+        - --log.level=INFO
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: USER
+          value: traefik
+        image: docker.io/traefik:v3.7.12
+        imagePullPolicy: IfNotPresent
+        lifecycle: null
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ping
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        name: meridian-edge-traefik
+        ports:
+        - containerPort: 9100
+          name: metrics
+          protocol: TCP
+        - containerPort: 8080
+          name: traefik
+          protocol: TCP
+        - containerPort: 8000
+          name: web
+          protocol: TCP
+        - containerPort: 8443
+          name: websecure
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 1
+          httpGet:
+            path: /ping
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        resources: null
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+      hostNetwork: false
+      securityContext:
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: meridian-edge-traefik
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - emptyDir: {}
+        name: data
+      - emptyDir: {}
+        name: tmp
+---
+# Source: traefik/templates/ingressclass.yaml
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "false"
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: meridian-edge-kcna-lab13-ingress
+    helm.sh/chart: traefik-41.4.0
+    app.kubernetes.io/managed-by: Helm
+  name: meridian-edge
+spec:
+  controller: traefik.io/ingress-controller

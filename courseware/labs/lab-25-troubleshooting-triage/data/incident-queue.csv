@@ -1,0 +1,5 @@
+ticket,raised_by,priority,workload,manifest_to_apply,reported_symptom,sla_minutes
+DEP-1041,gate-ops-sg-tuas,P2,depot-api,broken/01-depot-api-imagepull.yaml,"Deployed the new API build this morning. Pod never comes up. No application logs at all.",10
+DEP-1042,platform-oncall,P1,shipment-worker,broken/02-shipment-worker-crashloop.yaml,"Worker keeps restarting. It prints one line then vanishes. Restart count is climbing fast.",10
+DEP-1043,platform-oncall,P2,manifest-indexer,broken/03-manifest-indexer-pending.yaml,"Applied 20 minutes ago and nothing has happened. kubectl logs says there is no container.",10
+DEP-1044,driver-app-team,P1,depot-tracker,broken/04-depot-tracker-no-endpoints.yaml,"Pods are green, dashboard is green, but every request to the tracker service times out.",15

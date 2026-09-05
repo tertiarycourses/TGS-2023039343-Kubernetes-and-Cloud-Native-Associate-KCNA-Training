@@ -1,0 +1,68 @@
+# A remote service that the ambassador Pod will proxy to.
+# Serves data/tariff-quote.json (via ConfigMap `tariff-quote`, created in Step 2)
+# on the cluster-internal DNS name tariff-backend.kcna-lab04.svc.cluster.local.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tariff-backend
+  namespace: kcna-lab04
+  labels:
+    app.kubernetes.io/name: tariff-backend
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-04
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 10
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: web
+      image: nginx:1.27-alpine
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+      volumeMounts:
+        - name: quote
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      readinessProbe:
+        httpGet:
+          path: /tariff-quote.json
+          port: http
+        initialDelaySeconds: 2
+        periodSeconds: 5
+      securityContext:
+        allowPrivilegeEscalation: false
+  volumes:
+    - name: quote
+      configMap:
+        name: tariff-quote
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tariff-backend
+  namespace: kcna-lab04
+  labels:
+    app.kubernetes.io/name: tariff-backend
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: tariff-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

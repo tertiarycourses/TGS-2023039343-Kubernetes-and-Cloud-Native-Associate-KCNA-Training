@@ -1,0 +1,12 @@
+# Lab 02 — Authoring Your First Pod Manifest
+# Meridian Freight Pte Ltd · Depot Portal platform
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab02
+  labels:
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-02
+    kcna.tertiaryinfotech.com/day: "1"
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest

@@ -1,0 +1,256 @@
+# =========================================================================
+# Lab 23 · Part 5 — OPTIONAL metrics-server install.
+#
+# READ THIS BEFORE APPLYING.
+#
+# `kubectl top` is NOT a built-in capability of a Kubernetes cluster. It is a
+# client for the metrics.k8s.io API, and that API is served by an add-on.
+# A stock `kind` cluster does NOT ship metrics-server, so on a fresh kind
+# cluster `kubectl top pods` fails with:
+#
+#     error: Metrics API not available
+#
+# That is correct behaviour, not a broken cluster.
+#
+# WHY --kubelet-insecure-tls IS REQUIRED ON kind
+# ----------------------------------------------
+# metrics-server scrapes each kubelet's /metrics/resource endpoint over HTTPS.
+# By default it verifies the kubelet's serving certificate against the cluster
+# CA. kind's kubelets serve a SELF-SIGNED certificate: kubelet certificate
+# rotation/signing (`serverTLSBootstrap`) is not enabled by default, so no CA
+# in the cluster has signed that certificate. Verification therefore fails and
+# every scrape errors with `x509: cannot validate certificate ... because it
+# doesn't contain any IP SANs`.
+#
+# `--kubelet-insecure-tls` tells metrics-server to skip that verification.
+#
+# WHY THAT WOULD BE WRONG IN PRODUCTION
+# -------------------------------------
+# Skipping verification means metrics-server will trust ANY TLS peer that
+# answers on the kubelet address. An attacker who can intercept or impersonate
+# a node endpoint can feed the control plane fabricated resource metrics,
+# which in turn drive HorizontalPodAutoscaler decisions. The production fix is
+# to enable kubelet serving certificate signing (`serverTLSBootstrap: true`
+# plus a CSR approver) and let metrics-server verify normally. Use the insecure
+# flag on disposable lab clusters only.
+#
+# BLAST RADIUS OF THIS FILE
+# -------------------------
+# Namespaced to kcna-lab23 : ServiceAccount, Service, Deployment
+# CLUSTER-SCOPED (2)       : ClusterRole  kcna-lab23:metrics-server
+#                            ClusterRoleBinding kcna-lab23:metrics-server
+#                            ClusterRoleBinding kcna-lab23:metrics-server:auth-delegator
+#                            APIService   v1beta1.metrics.k8s.io
+# A FOURTH object is needed in kube-system; it is kept in a SEPARATE file,
+# 91-metrics-server-kube-system-rolebinding.yaml, so that the one step which
+# reaches outside your namespace is an explicit, conscious decision.
+#
+# If your cluster policy forbids cluster-scoped writes, SKIP Part 5 entirely.
+# Parts 1-4 of this lab are fully namespace-local and are the assessed content.
+#
+# CONFLICT CHECK — run this FIRST:
+#     kubectl get apiservice v1beta1.metrics.k8s.io
+# If it already exists, a metrics-server is already installed. Do NOT apply
+# this file; use the existing one and skip to Step 5.4.
+#
+# NOTE ON THE UPSTREAM BUNDLE
+# ---------------------------
+# The official metrics-server components.yaml also ships a ClusterRole named
+# `system:aggregated-metrics-reader` carrying rbac.authorization.k8s.io
+# aggregation labels, which silently grants metrics read access to every
+# subject already bound to the built-in view/edit/admin roles cluster-wide.
+# It is deliberately OMITTED here: it mutates built-in roles, and the kind
+# admin credential you are using already has `*` access.
+#
+# NOTE ON priorityClassName
+# -------------------------
+# The upstream bundle sets `priorityClassName: system-cluster-critical`. That
+# PriorityClass may only be used by Pods in the kube-system namespace, so it is
+# omitted here. This Deployment therefore has no scheduling protection — fine
+# for a lab, not for production.
+# =========================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metrics-server
+  namespace: kcna-lab23
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kcna-lab23:metrics-server
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+rules:
+  # Read the per-node resource metrics endpoint on each kubelet.
+  - apiGroups: [""]
+    resources: ["nodes/metrics"]
+    verbs: ["get"]
+  # Discover which Pods and Nodes exist so samples can be attributed.
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "namespaces", "configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kcna-lab23:metrics-server
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kcna-lab23:metrics-server
+subjects:
+  - kind: ServiceAccount
+    name: metrics-server
+    namespace: kcna-lab23
+---
+# Lets metrics-server delegate authn/authz decisions back to the kube-apiserver
+# (the "aggregation layer" handshake). system:auth-delegator is a built-in
+# ClusterRole; we only create a binding to it, we do not modify it.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kcna-lab23:metrics-server:auth-delegator
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: metrics-server
+    namespace: kcna-lab23
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-server
+  namespace: kcna-lab23
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+spec:
+  type: ClusterIP
+  selector:
+    k8s-app: metrics-server
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-server
+  namespace: kcna-lab23
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      k8s-app: metrics-server
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        k8s-app: metrics-server
+    spec:
+      serviceAccountName: metrics-server
+      # A single-node kind cluster taints its control-plane node in some
+      # configurations. Tolerate it so the add-on can schedule anywhere.
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      volumes:
+        - name: tmp-dir
+          emptyDir: {}
+      containers:
+        - name: metrics-server
+          image: registry.k8s.io/metrics-server/metrics-server:v0.7.2
+          imagePullPolicy: IfNotPresent
+          args:
+            - --cert-dir=/tmp
+            - --secure-port=10250
+            - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+            - --kubelet-use-node-status-port
+            - --metric-resolution=15s
+            # See the long comment at the top of this file. Lab clusters only.
+            - --kubelet-insecure-tls
+          ports:
+            - name: https
+              containerPort: 10250
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: https
+              scheme: HTTPS
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: tmp-dir
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 500m
+              memory: 400Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]
+---
+# The aggregation layer entry. This is what makes `kubectl top` route
+# metrics.k8s.io requests to the Service above.
+#
+# insecureSkipTLSVerify: true is the SECOND insecure setting in this file. It
+# concerns the kube-apiserver -> metrics-server hop, and is needed because
+# metrics-server generates its own self-signed serving certificate into
+# --cert-dir=/tmp. Production installs provision a properly signed certificate
+# and set caBundle instead.
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1beta1.metrics.k8s.io
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+spec:
+  group: metrics.k8s.io
+  version: v1beta1
+  groupPriorityMinimum: 100
+  versionPriority: 100
+  insecureSkipTLSVerify: true
+  service:
+    name: metrics-server
+    namespace: kcna-lab23
+    port: 443

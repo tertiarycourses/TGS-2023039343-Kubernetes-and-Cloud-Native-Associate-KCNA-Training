@@ -1,0 +1,32 @@
+# DEFAULT DENY for every Pod in kcna-lab16, both directions.
+#
+# Read it field by field:
+#   podSelector: {}        - the EMPTY selector matches EVERY Pod in the
+#                            namespace. (Contrast: omitting podSelector is not
+#                            allowed; {} is how you say "all".)
+#   policyTypes: [Ingress, Egress]
+#                          - this policy takes over BOTH directions for the
+#                            selected Pods.
+#   no ingress: / egress:  - there are no allow rules, so nothing is allowed.
+#
+# NetworkPolicy has no "deny" verb. Isolation is a side effect: as soon as ANY
+# policy selects a Pod for a direction, that direction becomes deny-by-default
+# and only the union of allow rules from all policies gets through.
+#
+# ###########################################################################
+# #  ON A STOCK kind CLUSTER THIS POLICY WILL NOT BLOCK ANY TRAFFIC.        #
+# #  kind's default CNI (kindnet) does not implement NetworkPolicy. The API #
+# #  server stores this object; nothing enforces it. See README section 5.  #
+# ###########################################################################
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: kcna-lab16
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

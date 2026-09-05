@@ -1,0 +1,74 @@
+# networking.k8s.io/v1 Ingress — the stable API, GA since Kubernetes v1.19.
+#
+# IMPORTANT: creating this object does NOT create any routing. An Ingress is a
+# declaration of intent that an ingress CONTROLLER must read and implement. On a
+# stock kind cluster there is no controller and no IngressClass, so this object
+# is accepted, stays with an empty ADDRESS, and routes nothing. See README
+# section 4 Step 5.
+#
+# Note the DIRECTION of that reasoning: no controller => blank ADDRESS. The
+# converse is FALSE. README Appendix C installs a real, pinned controller that
+# routes every rule below correctly while ADDRESS stays blank forever, because
+# its Service is a ClusterIP with status publishing disabled. The decisive
+# checks for "is a controller present" are the existence of an IngressClass and
+# of a controller Pod - not the ADDRESS column and not the event list.
+#
+# The rules below are the declarative form of data/routing-table.csv;
+# verification/checks.sh diffs the live object against that file.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: meridian-shop
+  namespace: kcna-lab13
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  # Names the IngressClass whose controller should claim this object. Omitting
+  # it makes the outcome CONTROLLER-DEPENDENT: the
+  # ingressclass.kubernetes.io/is-default-class annotation is one adoption
+  # mechanism, some controllers claim class-less Ingresses on their own terms,
+  # and others ignore them - with NO error and NO event either way. Naming the
+  # class explicitly removes all of that ambiguity, which is why it is done
+  # here. README Appendix C installs a controller that creates an IngressClass
+  # with exactly this name, so this forward reference then resolves.
+  ingressClassName: meridian-edge
+  # Serves any request that matches no rule below. Optional; when absent the
+  # controller returns its own 404 page.
+  defaultBackend:
+    service:
+      name: route-fallback-svc
+      port:
+        number: 80
+  rules:
+    - host: shop.meridianfreight.internal
+      http:
+        paths:
+          # Prefix: matches /catalog, /catalog/, /catalog/containers ...
+          # Matching is per PATH ELEMENT, so it does NOT match /catalogue.
+          - path: /catalog
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-svc
+                port:
+                  number: 80
+          # Exact: matches /checkout/status and nothing else - not even
+          # /checkout/status/ with a trailing slash.
+          - path: /checkout/status
+            pathType: Exact
+            backend:
+              service:
+                name: checkout-svc
+                port:
+                  number: 80
+    # A second host on the same Ingress: host-based fan-out.
+    - host: tracking.meridianfreight.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-svc
+                port:
+                  number: 80

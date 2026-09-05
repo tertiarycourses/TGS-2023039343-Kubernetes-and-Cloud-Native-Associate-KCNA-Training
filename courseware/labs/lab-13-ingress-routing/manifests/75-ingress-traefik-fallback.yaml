@@ -1,0 +1,18 @@
+# Optional controller path: Traefik v3.7.12 only creates its fallback router
+# from an Ingress with defaultBackend and no rules. Keep this separate from
+# meridian-shop, which contains the host/path rules. Live-tested on Kubernetes1.37.
+# Source: https://github.com/traefik/traefik/blob/v3.7.12/pkg/provider/kubernetes/ingress/kubernetes.go
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: meridian-fallback
+  namespace: kcna-lab13
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  ingressClassName: meridian-edge
+  defaultBackend:
+    service:
+      name: route-fallback-svc
+      port:
+        number: 80

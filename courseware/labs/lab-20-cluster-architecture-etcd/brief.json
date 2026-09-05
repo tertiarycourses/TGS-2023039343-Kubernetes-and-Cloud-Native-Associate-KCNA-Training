@@ -1,0 +1,14 @@
+{
+  "goal": "Open the control plane that has been running every lab so far: read the static Pod manifests the kubelet acts on, trace how apiserver, etcd, scheduler and controller-manager interact, then take and verify a real etcd snapshot to a file — and read, without executing, the destructive restore procedure.",
+  "produces": [
+    "A verified etcd snapshot file with etcdctl snapshot save and a snapshot status table showing hash, revision, total keys and size.",
+    "An annotated control-plane inventory generated from the platform team's dataset, naming the exact mirror-pod objects on this node.",
+    "A version-controlled etcd backup policy (RPO/RTO, retention, off-node copy, what a restore does not recover) applied as a cluster object and read from inside the cluster."
+  ],
+  "concepts": [
+    "Control-plane components and how apiserver, etcd, scheduler, controller-manager and kubelet interact",
+    "Static Pods, the kubelet manifest directory, and mirror Pods in the API server",
+    "etcd as the single source of cluster state, and snapshot save / snapshot status",
+    "Backup policy, RPO/RTO, and the read-only boundary around a destructive restore"
+  ]
+}

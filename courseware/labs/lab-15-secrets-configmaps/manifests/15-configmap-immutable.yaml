@@ -1,0 +1,19 @@
+# immutable: true tells the API server to reject every future change to data or
+# binaryData. Benefits:
+#   - protects running Pods from an accidental config change
+#   - kubelet stops watching it, which measurably reduces API server load in
+#     large clusters
+# Cost: the ONLY way to change it is to delete and recreate it, so version the
+# NAME (…-v1, …-v2) and roll the Deployment to pick up the new one.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: booking-app-config-v1
+  namespace: kcna-lab15
+  labels:
+    app: booking-api
+    config-version: v1
+immutable: true
+data:
+  RELEASE_CHANNEL: "stable"
+  SCHEMA_VERSION: "2026-09-01"

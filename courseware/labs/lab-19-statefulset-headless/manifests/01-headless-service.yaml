@@ -1,0 +1,43 @@
+# Lab 19 / Step 2 — the HEADLESS Service.
+#
+# `clusterIP: None` is the entire difference between this and an ordinary
+# Service. It tells the Service controller:
+#   * do NOT allocate a virtual IP
+#   * do NOT programme kube-proxy load-balancing rules for it
+#   * DO let CoreDNS publish one A/AAAA record per READY backing Pod
+#
+# Because the StatefulSet below sets `serviceName: depot-ledger`, the DNS
+# layer additionally publishes a per-Pod record:
+#
+#     depot-ledger-0.depot-ledger.kcna-lab19.svc.cluster.local
+#     <pod-name>  . <service> . <namespace> . svc . cluster.local
+#
+# That per-Pod name is the "stable network identity" a StatefulSet promises.
+# It is resolvable for the lifetime of the ordinal, across Pod deletion,
+# rescheduling and IP changes.
+#
+# CREATE THIS BEFORE THE STATEFULSET. The StatefulSet controller does not
+# create the Service for you and will not warn you if it is missing — see
+# manifests/05-broken-no-headless-service.yaml.
+apiVersion: v1
+kind: Service
+metadata:
+  name: depot-ledger
+  namespace: kcna-lab19
+  labels:
+    app.kubernetes.io/name: depot-ledger
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "19"
+spec:
+  clusterIP: None
+  # Setting this to true would publish DNS records for Pods that are not yet
+  # Ready. Some clustered databases need that for peer discovery during
+  # bootstrap. We leave it false so that "resolvable" implies "Ready".
+  publishNotReadyAddresses: false
+  selector:
+    app.kubernetes.io/name: depot-ledger
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

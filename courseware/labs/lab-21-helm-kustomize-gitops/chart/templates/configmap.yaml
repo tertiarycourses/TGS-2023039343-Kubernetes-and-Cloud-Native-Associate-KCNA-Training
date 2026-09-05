@@ -1,0 +1,37 @@
+{{/*
+Lab 21 — application config and the lane dataset, rendered from values.
+
+The lane CSV arrives here from either chart/values.yaml (the small default) or
+`--set-file lanes.csv=data/shipping-lanes.csv` at render time. `nindent 4` is
+the correct way to embed a multi-line string under a YAML key: it inserts a
+newline and then indents every line by 4.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tracklane.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tracklane.labels" . | nindent 4 }}
+data:
+  # envFrom turns every key in this ConfigMap into an environment variable, so
+  # each value must be a string. `quote` is not optional here: an unquoted
+  # `false` renders as a YAML boolean and the API server rejects it with
+  # "cannot convert bool to string".
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  FEATURE_LANE_ETA: {{ .Values.config.featureLaneEta | quote }}
+  CACHE_TTL_SECONDS: {{ .Values.config.cacheTtlSeconds | quote }}
+  ENVIRONMENT: {{ .Values.environment | quote }}
+  CHART_VERSION: {{ .Chart.Version | quote }}
+  APP_VERSION: {{ .Chart.AppVersion | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tracklane.fullname" . }}-lanes
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tracklane.labels" . | nindent 4 }}
+data:
+  shipping-lanes.csv: |
+    {{- .Values.lanes.csv | nindent 4 }}

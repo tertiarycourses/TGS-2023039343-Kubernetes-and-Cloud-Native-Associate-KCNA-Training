@@ -1,0 +1,60 @@
+# =========================================================================
+# BROKEN MANIFEST 1 of 4 — ticket DEP-1041
+#
+# INSTRUCTOR / SELF-STUDY NOTE — do not read further than this box on a first
+# pass. Diagnose it from the cluster first, then come back and confirm.
+#
+# This manifest is deliberately SCHEMA-VALID. `kubectl apply` succeeds, the API
+# server stores the object, the scheduler places the Pod. The failure happens
+# later, at the container runtime, which is exactly the point: a manifest that
+# passes validation can still be completely wrong.
+#
+# <details>
+# BUG      : the image tag is misspelt — "1.27-alpne" instead of "1.27-alpine".
+# PHASE    : image pull (after scheduling, before container creation)
+# SYMPTOM  : STATUS ErrImagePull then ImagePullBackOff; READY 0/1
+# FIX      : correct the tag to nginx:1.27-alpine
+# </details>
+# =========================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depot-api
+  namespace: kcna-lab25
+  labels:
+    app: depot-api
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/intentionally-broken: "true"
+    kcna.tertiaryinfotech.com/ticket: DEP-1041
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: depot-api
+  template:
+    metadata:
+      labels:
+        app: depot-api
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: api
+          # A registry that exists, a repository that exists, a tag that does
+          # not. This fails fast with "manifest unknown" rather than hanging,
+          # which keeps the lab on schedule.
+          image: nginx:1.27-alpne
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false

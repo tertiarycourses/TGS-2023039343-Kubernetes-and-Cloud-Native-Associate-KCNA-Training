@@ -1,0 +1,12 @@
+# Lab 17 — namespace isolation boundary.
+# Every object in this lab is created inside kcna-lab17 so that cleanup can
+# remove the whole lab with a single, explicitly named namespace delete.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab17
+  labels:
+    kubernetes.io/metadata.name: kcna-lab17
+    kcna.tertiaryinfotech.com/course: tgs-2023039343
+    kcna.tertiaryinfotech.com/lab: "17"
+    kcna.tertiaryinfotech.com/day: "4"

@@ -1,0 +1,61 @@
+# DELIBERATELY BROKEN — failure injection for README section 6.
+#
+# Same booking container, but the operator forgot two things:
+#   * TARIFF_TABLE is never set
+#   * the ConfigMap route-defaults is not referenced at all
+# The process therefore fails its own start-up preflight and exits 1.
+# restartPolicy: Always turns a repeated non-zero exit into CrashLoopBackOff,
+# and because the container is gone by the time you look, you must read the log
+# of the PREVIOUS instance with `kubectl logs --previous`.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: booking-missing-env
+  namespace: kcna-lab03
+  labels:
+    app.kubernetes.io/name: booking
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-03
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "[preflight] booking-api starting"
+          if [ -z "${TARIFF_TABLE}" ]; then
+            echo "[preflight] FATAL: TARIFF_TABLE is not set - refusing to start" >&2
+            exit 1
+          fi
+          if [ ! -r "${TARIFF_TABLE}" ]; then
+            echo "[preflight] FATAL: cannot read ${TARIFF_TABLE}" >&2
+            exit 1
+          fi
+          echo "[preflight] ok"
+          sleep 3600
+      env:
+        - name: SERVICE_NAME
+          value: booking
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]

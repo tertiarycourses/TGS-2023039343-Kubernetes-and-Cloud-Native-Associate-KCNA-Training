@@ -1,0 +1,71 @@
+# Lab 17 / Step 9 — hostPath, the DANGEROUS volume type.
+#
+# hostPath punches a hole from the Pod straight into the node's filesystem.
+# It is the mechanism behind legitimate node agents (log shippers, CNI
+# installers, node exporters) and behind most container-escape write-ups.
+#
+# SAFETY DESIGN OF THIS MANIFEST — read before you apply it:
+#   * path is /var/log, a directory that already exists on every node.
+#   * type: Directory  => the kubelet REFUSES to create it; if the path is
+#     wrong the Pod fails loudly instead of silently making a directory.
+#   * readOnly: true on the volumeMount  => the container cannot modify the
+#     node. This is the single most important hardening flag for hostPath.
+#   * The container drops ALL capabilities and runs unprivileged.
+#
+# On a kind cluster the "node" is a Docker container, so /var/log here is the
+# kind node container's /var/log — which is where the kubelet writes
+# /var/log/containers and /var/log/pods symlinks. That is exactly what a real
+# log-shipping DaemonSet mounts.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node-log-peek
+  namespace: kcna-lab17
+  labels:
+    app.kubernetes.io/name: node-log-peek
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "17"
+spec:
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+    - name: node-logs
+      hostPath:
+        path: /var/log
+        type: Directory
+  containers:
+    - name: peek
+      image: busybox:1.36
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          set -eu
+          echo "--- top level of the node's /var/log (read-only) ---"
+          ls -1 /host-logs | head -20
+          echo "--- can we write to it? ---"
+          if touch /host-logs/kcna-lab17-probe 2>/dev/null; then
+            echo "WRITABLE - this would be a node-integrity problem"
+          else
+            echo "read-only mount refused the write (expected)"
+          fi
+          sleep 3600
+      volumeMounts:
+        - name: node-logs
+          mountPath: /host-logs
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]

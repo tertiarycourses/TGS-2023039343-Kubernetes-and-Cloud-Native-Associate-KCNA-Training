@@ -1,0 +1,36 @@
+# Lab 21 — Helm values for the TrackLane DEV environment.
+#
+# This file is an OVERLAY on chart/values.yaml. Helm deep-merges it over the
+# chart defaults, so anything not mentioned here keeps its default value.
+# Consumed by:
+#   helm template tracklane-dev ./chart -f data/values-dev.yaml
+#
+# Compare with data/values-prod.yaml — the diff between these two files IS the
+# environment configuration, and it is the artefact a reviewer reads.
+environment: dev
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+config:
+  logLevel: debug
+  # Feature flags are enabled in dev first. This is the single most common
+  # real reason a values file differs between environments.
+  featureLaneEta: true
+  cacheTtlSeconds: 5
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Dev runs a single replica of a stateless web tier, so a PodDisruptionBudget
+# would only get in the way of node maintenance.
+podDisruptionBudget:
+  enabled: false

@@ -1,0 +1,46 @@
+# ---------------------------------------------------------------------------
+# Lab 24 · Failure injection — a scrape config with ONE wrong character.
+#
+# Identical to prometheus-scrape.yml except the depot-portal target port is
+# 9101 instead of 9100. Nothing is listening there.
+#
+# This is the most common Prometheus failure in the field: the config is valid,
+# Prometheus loads it happily, the target is listed on /targets — and it is
+# DOWN. The `up` metric is how you detect it, and `up == 0` is the first alert
+# every team should write.
+#
+# Expected symptom: job "depot-portal" target state DOWN with a
+# "connect: connection refused" error, and up{job="depot-portal"} == 0.
+# ---------------------------------------------------------------------------
+global:
+  scrape_interval: 10s
+  evaluation_interval: 30s
+  external_labels:
+    cluster: kcna-kind
+    env: lab
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+        labels:
+          component: monitoring
+
+  - job_name: depot-portal
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets:
+          # WRONG PORT — the Service listens on 9100.
+          - depot-metrics-sim.kcna-lab24.svc.cluster.local:9101
+        labels:
+          depot: sg-tuas
+          service: depot-portal
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: instance
+        replacement: '${1}'
+        action: replace

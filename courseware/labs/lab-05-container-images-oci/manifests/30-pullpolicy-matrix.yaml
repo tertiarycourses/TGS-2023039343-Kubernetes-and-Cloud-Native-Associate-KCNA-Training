@@ -1,0 +1,121 @@
+# imagePullPolicy semantics, demonstrated three ways.
+#
+#   Always        contact the registry every time the container starts.
+#                 (The blob layers are still reused; only the manifest is
+#                 re-resolved, so this is cheap but not free — and it FAILS
+#                 when the registry is unreachable.)
+#   IfNotPresent  use the node's local image store if the reference is there.
+#   Never         never contact a registry. If the image is not already on the
+#                 node the container cannot start: ErrImageNeverPull.
+#
+# DEFAULTS, if you omit the field entirely:
+#   tag is :latest, or no tag at all  -> Always
+#   any other explicit tag            -> IfNotPresent
+#   digest reference                  -> IfNotPresent
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pp-always
+  namespace: kcna-lab05
+  labels:
+    kcna.tertiaryinfotech.com/lab: lab-05
+    kcna.tertiaryinfotech.com/policy: always
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: probe
+      image: busybox:1.36
+      imagePullPolicy: Always
+      command: ["/bin/sh", "-c", "echo policy=Always; sleep 3600"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pp-ifnotpresent
+  namespace: kcna-lab05
+  labels:
+    kcna.tertiaryinfotech.com/lab: lab-05
+    kcna.tertiaryinfotech.com/policy: ifnotpresent
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: probe
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c", "echo policy=IfNotPresent; sleep 3600"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+---
+# This image is not, and will not be, on the node. With Never, the kubelet does
+# not even try to fetch it: the container status becomes ErrImageNeverPull.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pp-never
+  namespace: kcna-lab05
+  labels:
+    kcna.tertiaryinfotech.com/lab: lab-05
+    kcna.tertiaryinfotech.com/policy: never
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: probe
+      image: meridianfreight.example.com/depot-portal/depot-api:0.1.0-poc
+      imagePullPolicy: Never
+      command: ["/bin/sh", "-c", "echo policy=Never; sleep 3600"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]

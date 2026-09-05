@@ -1,0 +1,53 @@
+# DELIBERATE OOMKill demonstration.
+#
+# The compactor is told it may use 32Mi of memory. It then writes a 64 MiB file
+# into a tmpfs (emptyDir with medium: Memory), whose pages are charged to this
+# container's memory cgroup. The kernel's OOM killer terminates PID 1 as soon
+# as the cgroup limit is crossed.
+#
+# Expect: State=Terminated, Reason=OOMKilled, Exit Code=137 (128 + SIGKILL 9).
+# restartPolicy: Never keeps the terminal state visible for inspection.
+#
+# This is safe: the blast radius is one container's own cgroup, capped at 32Mi.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ledger-compactor
+  namespace: kcna-lab10
+  labels:
+    app: ledger-compactor
+    tier: batch
+    qos-demo: guaranteed
+spec:
+  restartPolicy: Never
+  containers:
+    - name: compactor
+      image: busybox:1.36
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "compactor: memory limit is 32Mi; attempting a 64 MiB working set"
+          dd if=/dev/zero of=/scratch/ledger.tmp bs=1M count=64
+          echo "COMPACTION-COMPLETE (you should never see this line)"
+      volumeMounts:
+        - name: scratch
+          mountPath: /scratch
+      resources:
+        requests:
+          cpu: 100m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 32Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  volumes:
+    - name: scratch
+      emptyDir:
+        medium: Memory
+        sizeLimit: 128Mi
+  terminationGracePeriodSeconds: 3

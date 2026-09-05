@@ -1,0 +1,30 @@
+2026-09-05T06:00:01Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=a41f9c method=GET  path=/api/v1/shipments status=200 duration_ms=41  driver=DRV-2210
+2026-09-05T06:00:03Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=b72e10 method=POST path=/api/v1/checkin    status=201 duration_ms=118 driver=DRV-2210
+2026-09-05T06:00:05Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=c19a83 method=GET  path=/api/v1/manifest/SG44120 status=200 duration_ms=63 driver=DRV-1187
+2026-09-05T06:00:07Z WARN  depot-portal gate=sg-tuas lane=inbound req_id=d55b21 method=GET  path=/api/v1/manifest/SG44121 status=404 duration_ms=12 reason=manifest_not_indexed
+2026-09-05T06:00:09Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=e08c74 method=GET  path=/healthz status=200 duration_ms=2
+2026-09-05T06:00:11Z INFO  depot-portal gate=sg-tuas lane=outbound req_id=f3d902 method=POST path=/api/v1/dispatch status=201 duration_ms=204 driver=DRV-3341
+2026-09-05T06:00:13Z ERROR depot-portal gate=sg-tuas lane=outbound req_id=0a1b55 method=POST path=/api/v1/dispatch status=502 duration_ms=3011 upstream=manifest-indexer error=upstream_timeout
+2026-09-05T06:00:15Z ERROR depot-portal gate=sg-tuas lane=outbound req_id=1c4d66 method=POST path=/api/v1/dispatch status=502 duration_ms=3007 upstream=manifest-indexer error=upstream_timeout
+2026-09-05T06:00:17Z WARN  depot-portal gate=sg-tuas lane=outbound req_id=2e5f77 method=GET  path=/api/v1/queue status=200 duration_ms=891 note=queue_depth_high depth=47
+2026-09-05T06:00:19Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=3f6a88 method=GET  path=/api/v1/shipments status=200 duration_ms=38  driver=DRV-9042
+2026-09-05T06:00:21Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=4a7b99 method=POST path=/api/v1/checkin    status=201 duration_ms=127 driver=DRV-9042
+2026-09-05T06:00:23Z ERROR depot-portal gate=sg-tuas lane=outbound req_id=5b8caa method=POST path=/api/v1/dispatch status=502 duration_ms=3004 upstream=manifest-indexer error=upstream_timeout
+2026-09-05T06:00:25Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=6c9dbb method=GET  path=/healthz status=200 duration_ms=1
+2026-09-05T06:00:27Z WARN  depot-portal gate=sg-tuas lane=inbound req_id=7daecc method=GET  path=/api/v1/manifest/SG44133 status=404 duration_ms=9 reason=manifest_not_indexed
+2026-09-05T06:00:29Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=8ebfdd method=GET  path=/api/v1/shipments status=200 duration_ms=44  driver=DRV-1187
+2026-09-05T06:00:31Z ERROR depot-portal gate=sg-tuas lane=outbound req_id=9fc0ee method=POST path=/api/v1/dispatch status=502 duration_ms=3009 upstream=manifest-indexer error=upstream_timeout
+2026-09-05T06:00:33Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=a0d1ff method=POST path=/api/v1/checkin    status=201 duration_ms=131 driver=DRV-3341
+2026-09-05T06:00:35Z WARN  depot-portal gate=sg-tuas lane=outbound req_id=b1e200 method=GET  path=/api/v1/queue status=200 duration_ms=1204 note=queue_depth_high depth=58
+2026-09-05T06:00:37Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=c2f311 method=GET  path=/healthz status=200 duration_ms=2
+2026-09-05T06:00:39Z ERROR depot-portal gate=sg-tuas lane=outbound req_id=d30422 method=POST path=/api/v1/dispatch status=502 duration_ms=3002 upstream=manifest-indexer error=upstream_timeout
+2026-09-05T06:00:41Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=e41533 method=GET  path=/api/v1/shipments status=200 duration_ms=40  driver=DRV-2210
+2026-09-05T06:00:43Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=f52644 method=GET  path=/api/v1/manifest/SG44140 status=200 duration_ms=57 driver=DRV-2210
+2026-09-05T06:00:45Z INFO  depot-portal gate=sg-tuas lane=outbound req_id=063755 method=POST path=/api/v1/dispatch status=201 duration_ms=198 driver=DRV-9042
+2026-09-05T06:00:47Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=174866 method=GET  path=/healthz status=200 duration_ms=1
+2026-09-05T06:00:49Z WARN  depot-portal gate=sg-tuas lane=inbound req_id=285977 method=GET  path=/api/v1/manifest/SG44151 status=404 duration_ms=11 reason=manifest_not_indexed
+2026-09-05T06:00:51Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=396a88 method=POST path=/api/v1/checkin    status=201 duration_ms=122 driver=DRV-1187
+2026-09-05T06:00:53Z ERROR depot-portal gate=sg-tuas lane=outbound req_id=4a7b99 method=POST path=/api/v1/dispatch status=502 duration_ms=3006 upstream=manifest-indexer error=upstream_timeout
+2026-09-05T06:00:55Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=5b8caa method=GET  path=/api/v1/shipments status=200 duration_ms=36  driver=DRV-3341
+2026-09-05T06:00:57Z WARN  depot-portal gate=sg-tuas lane=outbound req_id=6c9dbb method=GET  path=/api/v1/queue status=200 duration_ms=1509 note=queue_depth_high depth=71
+2026-09-05T06:00:59Z INFO  depot-portal gate=sg-tuas lane=inbound req_id=7daecc method=GET  path=/healthz status=200 duration_ms=2

@@ -1,0 +1,7 @@
+name,kind,resolves,note
+quote-api,short,yes,resolved via the search path of the client Pod in the same namespace
+quote-api.kcna-lab11,ns-qualified,yes,second search-path entry svc.cluster.local is appended
+quote-api.kcna-lab11.svc,partial-fqdn,yes,cluster.local is appended from the search path
+quote-api.kcna-lab11.svc.cluster.local,fqdn,yes,fully qualified - no search path needed
+quote-api.default.svc.cluster.local,wrong-namespace,no,the Service does not exist in the default namespace
+kubernetes.default.svc.cluster.local,control-plane,yes,the always-present API server Service

@@ -1,0 +1,56 @@
+# Lab 23 · Part 4 — a container that logs, then dies.
+#
+# It prints five lines and exits 1. The Deployment restarts it, so the previous
+# container's log is retained by the kubelet exactly ONE generation back. This
+# is what makes `kubectl logs --previous` meaningful: after a restart, the
+# current container's log is empty or partial, and the evidence of WHY it died
+# is in the terminated container's log.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gate-scanner
+  namespace: kcna-lab23
+  labels:
+    app: gate-scanner
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: gate-scanner
+  template:
+    metadata:
+      labels:
+        app: gate-scanner
+        app.kubernetes.io/part-of: depot-portal
+        tier: backend
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: scanner
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              echo "$(date -u +%H:%M:%S) INFO  gate-scanner starting, serial=SCN-0447"
+              echo "$(date -u +%H:%M:%S) INFO  opening barcode reader on /dev/ttyUSB0"
+              sleep 5
+              echo "$(date -u +%H:%M:%S) WARN  reader handshake retry 1/1"
+              sleep 5
+              echo "$(date -u +%H:%M:%S) ERROR reader handshake failed: device not present"
+              echo "$(date -u +%H:%M:%S) FATAL gate-scanner exiting with status 1"
+              exit 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

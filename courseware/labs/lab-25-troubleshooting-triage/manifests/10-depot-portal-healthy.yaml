@@ -1,0 +1,98 @@
+# Lab 25 · Part 2 — the KNOWN-GOOD reference workload.
+#
+# Apply this FIRST and keep it running for the whole lab. Every broken manifest
+# in broken/ is a mutation of something in here, so when you are stuck you can
+# diff the broken object against this one and the difference IS the bug.
+#
+# This is a real triage habit: always know what "working" looks like on the
+# same cluster, at the same time.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depot-portal
+  namespace: kcna-lab25
+  labels:
+    app: depot-portal
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: depot-portal
+  template:
+    metadata:
+      labels:
+        app: depot-portal
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: portal
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: depot-portal
+  namespace: kcna-lab25
+  labels:
+    app: depot-portal
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: depot-portal
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+# In-cluster client for testing Services from inside the cluster.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: triage-client
+  namespace: kcna-lab25
+  labels:
+    app: triage-client
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 5
+  containers:
+    - name: shell
+      image: alpine:3.20
+      command: ["/bin/sh", "-c", "sleep 3600"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

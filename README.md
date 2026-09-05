@@ -1,70 +1,88 @@
-# TGS-2023039343 - Kubernetes and Cloud Native Associate (KCNA) Training
+# Kubernetes and Cloud Native Associate (KCNA) Training
 
-> Course: Kubernetes and Cloud Native Associate (KCNA) Training  
-> Course Code: TGS-2023039343  
-> Register here: https://www.tertiarycourses.com.sg/wsq-kubernetes-and-cloud-native-associate-kcna-training.html
+Build and explain Kubernetes solutions through practical labs covering cloud native architecture, workloads, networking, security, storage and observability.
 
-Hands-on KCNA labs for learners preparing to understand Kubernetes and cloud native fundamentals. The labs cover containers, Kubernetes architecture, Pods, Deployments, ReplicaSets, Services, scheduling, ConfigMaps, Secrets, RBAC, network policies, storage, cloud native architecture, CNCF projects, observability, CI/CD, GitOps, application delivery, and exam readiness.
+| Course detail | Information |
+|---|---|
+| Course code | `TGS-2023039343` |
+| Programme | WSQ |
+| Duration | 5 days / 40 hours: 37 training + 3 assessment |
+| Registration | [View course details and register](https://www.tertiarycourses.com.sg/wsq-kubernetes-and-cloud-native-associate-kcna-training.html) |
+| Funding | Up to 70% for eligible learners. Eligibility and terms apply; see the registration page. |
+| Courseware | v6.0 |
 
-## Courseware
+## About the course
 
-| File | Description |
-| --- | --- |
-| [Learner Guide](LG-Kubernetes-and-Cloud-Native-Associate-KCNA-Training.md) | Detailed step-by-step guide for the full course. |
-| [Labs Index](labs/README.md) | Quick links to all hands-on labs. |
-| [Tools Guide](labs/tools.md) | Free tools used throughout the labs. |
+Use Kubernetes manifests, mock business data and observable cluster behaviour to connect cloud native concepts with practical decisions. The course follows the registered Solution Architecture outcomes (`ICT-DES-4006-1.1`) and covers the current KCNA subject domains. KCNA certification is a separate Linux Foundation examination.
 
-## How to Use These Labs
+## Learning outcomes
 
-1. Read the learner guide before starting the first lab.
-2. Complete the labs in order because later exercises reuse earlier Kubernetes concepts.
-3. Use a local Kubernetes environment such as Minikube, Kind, Docker Desktop Kubernetes, or an instructor-provided cluster.
-4. Clean up workloads after each lab to keep the cluster easy to inspect.
-5. Review checkpoint questions and exam takeaways after every lab.
+- **LO1:** Develop a Kubernetes architectural proof of concept.
+- **LO2:** Identify the technical and practical requirements in a Kubernetes setup.
+- **LO3:** Develop a solution architecture within Kubernetes.
+- **LO4:** Prepare a technical blueprint for a Kubernetes-based solution for security and storage.
+- **LO5:** Demonstrate Kubernetes solution for a specific business problem.
+- **LO6:** Implement regular monitoring of the Kubernetes system and perform necessary troubleshooting.
 
-## Lab Catalogue
+## Topics covered
 
-### Kubernetes Fundamentals
+- Core Concepts
+- Workloads & Scheduling
+- Services and Networking
+- Security
+- Storage
+- Cluster Architecture, Installation & Configuration
+- Logging and Monitoring
+- Troubleshooting
+- Cloud native principles and the CNCF ecosystem
+- Container orchestration and OCI images
+- CI/CD, Helm, Kustomize and GitOps
 
-| Lab | Topic |
-| --- | --- |
-| [Lab 01](labs/lab-01-containers-cloud-native-kubernetes-overview.md) | Containers, Cloud Native Concepts, Kubernetes Overview |
-| [Lab 02](labs/lab-02-cluster-architecture-kubectl-namespaces.md) | Cluster Architecture, `kubectl`, Namespaces |
-| [Lab 03](labs/lab-03-pods-deployments-replicasets-scheduling.md) | Pods, Deployments, ReplicaSets, Scheduling |
-| [Lab 04](labs/lab-04-services-networking-dns-ingress.md) | Services, Networking, DNS, Ingress Concepts |
+## Labs
 
-### Orchestration, Security, and Storage
+Each lab has its own guide, mock data, Kubernetes YAML and verification script. Follow the detailed procedure in its README or the Learner Guide.
 
-| Lab | Topic |
-| --- | --- |
-| [Lab 05](labs/lab-05-configmaps-secrets-rbac-pod-security.md) | ConfigMaps, Secrets, RBAC, Pod Security |
-| [Lab 06](labs/lab-06-storage-stateful-workloads-autoscaling.md) | Storage, Stateful Workloads, Autoscaling |
+- [Lab 01 — Cluster Reconnaissance with kubectl](courseware/labs/lab-01-kubectl-and-cluster-recon/README.md)
+- [Lab 02 — Authoring Your First Pod Manifest](courseware/labs/lab-02-first-pod-manifest/README.md)
+- [Lab 03 — Commands, Arguments and Environment](courseware/labs/lab-03-commands-args-env/README.md)
+- [Lab 04 — Multi-Container Pod Patterns: Sidecar, Adapter, Ambassador](courseware/labs/lab-04-multi-container-patterns/README.md)
+- [Lab 05 — Container Images, OCI and the Runtime Interface](courseware/labs/lab-05-container-images-oci/README.md)
+- [Lab 06 — Labels, Selectors and ReplicaSets](courseware/labs/lab-06-labels-selectors-replicasets/README.md)
+- [Lab 07 — Deployments, Rollout Strategy and Rollback](courseware/labs/lab-07-deployments-rollout-rollback/README.md)
+- [Lab 08 — DaemonSets, Jobs and CronJobs](courseware/labs/lab-08-daemonsets-jobs-cronjobs/README.md)
+- [Lab 09 — Scheduling: nodeSelector, Affinity, Taints and Tolerations](courseware/labs/lab-09-scheduling-affinity-taints/README.md)
+- [Lab 10 — Resource Requests, Limits, QoS and Autoscaling](courseware/labs/lab-10-resources-requests-limits-autoscaling/README.md)
+- [Lab 11 — Services, Endpoints and Cluster DNS](courseware/labs/lab-11-services-endpoints/README.md)
+- [Lab 12 — Service Types: ClusterIP, NodePort and LoadBalancer](courseware/labs/lab-12-service-types-nodeport-lb/README.md)
+- [Lab 13 — Ingress Resources and HTTP Routing](courseware/labs/lab-13-ingress-routing/README.md)
+- [Lab 14 — Namespaces, ServiceAccounts and RBAC](courseware/labs/lab-14-namespaces-serviceaccounts-rbac/README.md)
+- [Lab 15 — Secrets, ConfigMaps and Safe Injection](courseware/labs/lab-15-secrets-configmaps/README.md)
+- [Lab 16 — NetworkPolicy and Default-Deny Isolation](courseware/labs/lab-16-networkpolicy-isolation/README.md)
+- [Lab 17 — Volumes: emptyDir, hostPath and the Container Filesystem](courseware/labs/lab-17-volumes-emptydir-hostpath/README.md)
+- [Lab 18 — PersistentVolumes, Claims and StorageClasses](courseware/labs/lab-18-pv-pvc-storageclass/README.md)
+- [Lab 19 — StatefulSets, Headless Services and Stable Identity](courseware/labs/lab-19-statefulset-headless/README.md)
+- [Lab 20 — Control Plane Anatomy and etcd Backup/Restore](courseware/labs/lab-20-cluster-architecture-etcd/README.md)
+- [Lab 21 — Packaging and Delivery: Helm, Kustomize and GitOps](courseware/labs/lab-21-helm-kustomize-gitops/README.md)
+- [Lab 22 — Probes, Health and Self-Healing](courseware/labs/lab-22-probes-health-selfhealing/README.md)
+- [Lab 23 — Events, Logs, Field Selectors and the Metrics Server](courseware/labs/lab-23-events-logs-metrics/README.md)
+- [Lab 24 — Metrics, Prometheus Exposition and the Observability Pipeline](courseware/labs/lab-24-prometheus-observability/README.md)
+- [Lab 25 — Troubleshooting Triage: Application, Node and Control Plane](courseware/labs/lab-25-troubleshooting-triage/README.md)
 
-### Cloud Native Ecosystem and Delivery
+## Course materials
 
-| Lab | Topic |
-| --- | --- |
-| [Lab 07](labs/lab-07-observability-prometheus-grafana-logs.md) | Observability, Prometheus, Grafana, Logs |
-| [Lab 08](labs/lab-08-cicd-gitops-application-delivery.md) | CI/CD, GitOps, Application Delivery |
-| [Lab 09](labs/lab-09-cncf-landscape-service-mesh-serverless.md) | CNCF Landscape, Service Mesh, Serverless |
-| [Lab 10](labs/lab-10-kcna-capstone-exam-readiness.md) | KCNA Capstone and Exam Readiness |
+- [Learner Guide](courseware/LEARNER-GUIDE.md)
+- [Learner Guide PDF](courseware/LG-Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.0.pdf)
+- [Learner slides PDF](courseware/Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.0.pdf)
+- [Earlier learner materials](legacy/pre-v6.0/) are retained for historical reference. Use the current labs above for this version.
 
-## References
+## Using the labs
 
-- [KCNA Study Guide](https://devopscube.com/kcna-study-guide/)
-- [Course Registration](https://www.tertiarycourses.com.sg/wsq-kubernetes-and-cloud-native-associate-kcna-training.html)
-- [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [CNCF Landscape](https://landscape.cncf.io/)
+Start with Lab 01 for cluster and command-line prerequisites. Some optional exercises need extra controllers or a policy-capable cluster; their guides identify and supply the installation path. Read each lab's scope before applying its manifests. Mock data is synthetic and lab credentials are examples only.
 
-## Free Tools Used
+## Distribution
 
-- Minikube
-- Kind
-- Docker Desktop Kubernetes
-- kubectl
-- Helm
-- Kubernetes Dashboard
-- Prometheus and Grafana
-- GitHub Actions
-- Argo CD or Flux concepts
-- diagrams.net
+This public repository contains learner materials. Assessments, answer keys, source reference books, private configuration and build/QA files are distributed separately through the appropriate course channels.
+
+## Provider
+
+Tertiary Infotech Academy Pte Ltd (Tertiary Courses). [Course details and registration](https://www.tertiarycourses.com.sg/wsq-kubernetes-and-cloud-native-associate-kcna-training.html).

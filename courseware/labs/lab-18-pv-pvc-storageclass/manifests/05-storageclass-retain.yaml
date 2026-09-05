@@ -1,0 +1,36 @@
+# Lab 18 / Step 8 — a second StorageClass, for the "gold tier" datasets in
+# data/retention-policy.csv that must NOT be destroyed with their claim.
+#
+# CLUSTER-SCOPED. Section 8 of the README deletes it by explicit name.
+#
+# This class points at the SAME provisioner kind already runs
+# (rancher.io/local-path, the local-path-provisioner that ships with kind and
+# backs the default `standard` class). Only the lifecycle policy differs.
+# That is the lesson: a StorageClass is a named bundle of
+#   provisioner + parameters + reclaimPolicy + binding mode + expansion,
+# and one driver usually backs several classes.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: tracklane-retain
+  labels:
+    kcna.tertiaryinfotech.com/course: tgs-2023039343
+    kcna.tertiaryinfotech.com/lab: "18"
+  annotations:
+    # Explicitly NOT the default. kind already marks `standard` as default and
+    # having two defaults is an error condition.
+    storageclass.kubernetes.io/is-default-class: "false"
+# In a cloud this would be ebs.csi.aws.com / pd.csi.storage.gke.io /
+# disk.csi.azure.com — a CSI driver name. CSI is the plugin interface that
+# lets storage vendors ship a driver without patching Kubernetes itself.
+provisioner: rancher.io/local-path
+# Retain: deleting the PVC leaves the PV in phase Released with the data
+# intact. Compare `standard`, which uses Delete.
+reclaimPolicy: Retain
+# WaitForFirstConsumer: do not provision, and do not bind, until a Pod that
+# uses this claim is scheduled. This lets the provisioner honour the Pod's
+# node affinity / zone. The visible consequence is that the PVC sits in
+# Pending — that is CORRECT BEHAVIOUR, not a fault.
+volumeBindingMode: WaitForFirstConsumer
+# local-path volumes cannot be grown in place.
+allowVolumeExpansion: false

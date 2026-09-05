@@ -1,0 +1,14 @@
+# Lab 22 — Probes, Health and Self-Healing
+# Meridian Freight Pte Ltd · Depot Portal platform
+# Creates the ONLY namespace this lab is allowed to touch.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab22
+  labels:
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-22
+    kcna.tertiaryinfotech.com/day: "5"
+    # Pod Security Admission: enforce the baseline profile inside the lab.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest

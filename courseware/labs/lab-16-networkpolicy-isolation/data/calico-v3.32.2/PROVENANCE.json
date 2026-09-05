@@ -1,0 +1,21 @@
+{
+  "version": "3.32.2",
+  "files": [
+    {
+      "file": "tigera-operator.yaml",
+      "source": "https://raw.githubusercontent.com/projectcalico/calico/v3.32.2/manifests/tigera-operator.yaml",
+      "sha256": "4e372754e4e1c3a61cf7c0ceb9bc9fff2f78aa6575dcadcb5ea4e716bb00dffa"
+    },
+    {
+      "file": "v1_crd_projectcalico_org.yaml",
+      "source": "https://raw.githubusercontent.com/projectcalico/calico/v3.32.2/manifests/v1_crd_projectcalico_org.yaml",
+      "sha256": "cb46786692404fb7955c6d31329c667d0dd8f1ff4821dc7869d0156c93d3a859"
+    },
+    {
+      "file": "custom-resources.yaml",
+      "source": "https://raw.githubusercontent.com/projectcalico/calico/v3.32.2/manifests/custom-resources.yaml",
+      "sha256": "4fb598a7fce1ad1f8bbfb9004f5efcdb835082e92e06323cb7b8ce60260ed891"
+    }
+  ],
+  "license_source": "https://raw.githubusercontent.com/projectcalico/calico/v3.32.2/LICENSE.md"
+}

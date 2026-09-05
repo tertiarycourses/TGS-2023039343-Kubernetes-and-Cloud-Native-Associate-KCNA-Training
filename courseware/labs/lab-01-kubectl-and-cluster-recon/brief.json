@@ -1,0 +1,14 @@
+{
+  "goal": "Profile an unfamiliar Kubernetes cluster with kubectl alone — contexts, nodes, API groups, resource schemas and the raw REST calls behind every command — and record the findings as reusable evidence.",
+  "produces": [
+    "A namespace kcna-lab01 with a ResourceQuota and LimitRange, discovered and read back as YAML",
+    "A recon-shell Pod that serves the Meridian Freight reconnaissance checklist from a ConfigMap built out of data/recon-checklist.csv",
+    "A verified core-API inventory diff proving every resource in data/core-api-inventory.tsv is served by this cluster"
+  ],
+  "concepts": [
+    "kubectl is an HTTP client: --v=6 exposes the exact GET/POST against /api/v1/...",
+    "API discovery: api-versions, api-resources and namespaced vs cluster-scoped kinds",
+    "kubectl explain reads the live OpenAPI schema, not a static cheat sheet",
+    "Contexts and namespaces scope every request; NotFound usually means wrong scope"
+  ]
+}

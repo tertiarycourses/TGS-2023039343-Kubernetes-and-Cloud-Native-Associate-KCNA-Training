@@ -1,0 +1,96 @@
+# =========================================================================
+# BROKEN MANIFEST 4 of 4 — ticket DEP-1044
+#
+# Deliberately SCHEMA-VALID. This is the NASTIEST of the four, because
+# `kubectl get pods` shows everything Running and Ready 1/1. Nothing looks
+# wrong. Only the Service is broken, and Services fail silently.
+#
+# <details>
+# BUG      : the Deployment labels its Pods app=depot-tracker, but the Service
+#            selects app=depot-tracking. One character. The selector matches
+#            nothing, so the EndpointSlice is created with no addresses.
+# PHASE    : service routing (everything upstream is healthy)
+# SYMPTOM  : Pods Running and Ready; Service exists and has a ClusterIP;
+#            EndpointSlice ENDPOINTS column is <unset>; connections are
+#            refused or time out
+# FIX      : make Service.spec.selector match the Pod template labels
+# </details>
+#
+# WHY THIS IS THE MOST IMPORTANT OF THE FOUR: a Service selector mismatch
+# produces NO Warning event, NO restart and NO log line. The only evidence is
+# the absence of endpoints. If your triage sequence stops at "are the Pods
+# Ready?", you will never find it.
+# =========================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depot-tracker
+  namespace: kcna-lab25
+  labels:
+    app: depot-tracker
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/intentionally-broken: "true"
+    kcna.tertiaryinfotech.com/ticket: DEP-1044
+spec:
+  replicas: 2
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: depot-tracker
+  template:
+    metadata:
+      labels:
+        # The Pods are labelled depot-trackER.
+        app: depot-tracker
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: tracker
+          image: hashicorp/http-echo:1.0
+          args:
+            - -text=depot-tracker ok
+            - -listen=:5678
+          ports:
+            - name: http
+              containerPort: 5678
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: depot-tracker
+  namespace: kcna-lab25
+  labels:
+    app: depot-tracker
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/intentionally-broken: "true"
+    kcna.tertiaryinfotech.com/ticket: DEP-1044
+spec:
+  type: ClusterIP
+  selector:
+    # ...but the Service selects depot-trackING. No Pod carries this label.
+    app: depot-tracking
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5678
+      protocol: TCP

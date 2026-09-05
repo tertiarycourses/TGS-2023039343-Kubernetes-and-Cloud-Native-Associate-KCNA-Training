@@ -1,0 +1,23 @@
+# FAILURE INJECTION (README section 6). Apply this on purpose.
+# nodePort 8080 is OUTSIDE the API server's --service-node-port-range
+# (default 30000-32767), so the API server rejects the object at admission.
+# Note that this file is schema-valid: kubeconform accepts it. Range checking is
+# API-server validation, not OpenAPI schema validation - a useful distinction.
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-edge-nodeport-invalid
+  namespace: kcna-lab12
+  labels:
+    app: booking-edge
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  type: NodePort
+  selector:
+    app: booking-edge
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5678
+      nodePort: 8080
+      protocol: TCP

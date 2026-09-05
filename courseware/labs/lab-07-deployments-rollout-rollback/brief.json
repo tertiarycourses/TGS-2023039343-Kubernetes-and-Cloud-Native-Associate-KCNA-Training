@@ -1,0 +1,14 @@
+{
+  "goal": "Drive a Deployment through three revisions of the MFS Freight Portal, make maxSurge and maxUnavailable arithmetic visible during the update, then wedge the rollout with a bad image and recover with rollout undo.",
+  "produces": [
+    "A freight-portal Deployment at revision 2 serving the r24.2 page, with a readable rollout history and change-cause column",
+    "A wedged revision 3 stuck in ImagePullBackOff while the old ReplicaSet keeps 4 Pods Available",
+    "A verified rollback to revision 2 confirmed by curl through the ClusterIP Service"
+  ],
+  "concepts": [
+    "A Deployment owns ReplicaSets; a ReplicaSet owns Pods - rollouts are ReplicaSet scaling, not Pod mutation",
+    "maxSurge sets the ceiling (replicas + surge) and maxUnavailable sets the floor (replicas - unavailable)",
+    "rollout status / history / undo, kubernetes.io/change-cause and revisionHistoryLimit",
+    ".spec.selector is immutable on an existing Deployment"
+  ]
+}

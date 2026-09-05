@@ -1,0 +1,34 @@
+# FAILURE INJECTION (README section 6). Apply this on purpose.
+#
+# THREE deliberate defects, all of which the API server accepts without a word:
+#
+#   1. podSelector matches app: payments   (the Deployment's label is
+#      app: payments-api). The policy therefore protects ZERO Pods.
+#   2. ingress port 80 is the SERVICE port. NetworkPolicy is evaluated against
+#      the POD port, which is 8080.
+#   3. from.podSelector matches role: frontends (trailing "s"). No Pod carries
+#      that label.
+#
+# Any ONE of these silently voids the rule. There is no validation, no event
+# and no warning - `kubectl describe netpol` is the only way to see it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-payments-broken
+  namespace: kcna-lab16
+  labels:
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  podSelector:
+    matchLabels:
+      app: payments
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: frontends
+      ports:
+        - protocol: TCP
+          port: 80

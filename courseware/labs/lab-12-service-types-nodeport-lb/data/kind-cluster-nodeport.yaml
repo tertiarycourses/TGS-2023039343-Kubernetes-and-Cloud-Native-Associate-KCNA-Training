@@ -1,0 +1,20 @@
+# kind cluster configuration used by README Appendix A.
+# This is a kind config (kind.x-k8s.io/v1alpha4), NOT a Kubernetes API object,
+# which is why it lives in data/ and not in manifests/ - kubeconform validates
+# Kubernetes schemas only.
+#
+#   kind create cluster --name kcna-nodeport --config data/kind-cluster-nodeport.yaml
+#
+# extraPortMappings publishes a port of the node CONTAINER on the host, which is
+# the only way a NodePort becomes reachable at http://localhost:<port> from your
+# laptop. It must be decided when the cluster is CREATED - it cannot be added to
+# a running kind cluster.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080   # the Service nodePort inside the node
+        hostPort: 30080        # the port on your laptop
+        listenAddress: "127.0.0.1"
+        protocol: TCP

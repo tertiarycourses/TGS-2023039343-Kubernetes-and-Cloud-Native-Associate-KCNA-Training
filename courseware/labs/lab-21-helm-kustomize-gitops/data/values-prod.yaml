@@ -1,0 +1,35 @@
+# Lab 21 — Helm values for the TrackLane PROD environment.
+#
+# Consumed by:
+#   helm template tracklane-prod ./chart -f data/values-prod.yaml
+#
+# Every value here that differs from data/values-dev.yaml is a deliberate
+# production decision, and `diff` between the two rendered outputs is the
+# change-review artefact.
+environment: prod
+
+replicaCount: 3
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+config:
+  logLevel: warn
+  # Not yet promoted out of dev.
+  featureLaneEta: false
+  cacheTtlSeconds: 300
+
+service:
+  type: ClusterIP
+  port: 80
+
+# With 3 replicas a PDB is meaningful: it stops a node drain from taking the
+# whole web tier down at once.
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2

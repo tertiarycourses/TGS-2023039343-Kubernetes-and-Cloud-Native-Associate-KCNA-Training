@@ -1,0 +1,66 @@
+# ---------------------------------------------------------------------------
+# Meridian Freight Pte Ltd — Prometheus scrape configuration (Lab 24)
+# Loaded into the ConfigMap `prometheus-config` under the key prometheus.yml
+# and mounted at /etc/prometheus/prometheus.yml.
+#
+# This is a STATIC configuration on purpose. Production Kubernetes installs use
+# kubernetes_sd_configs service discovery so that targets appear and disappear
+# with Pods; that machinery is deliberately out of scope so you can see the
+# scrape anatomy with nothing hidden.
+# ---------------------------------------------------------------------------
+global:
+  # How often Prometheus pulls each target. This is the resolution of every
+  # series it stores; rate() windows must be several times larger than this.
+  scrape_interval: 10s
+  # How often recording/alerting rules are evaluated. None are defined here.
+  evaluation_interval: 30s
+  # Attached to every series leaving this server (federation, remote_write).
+  external_labels:
+    cluster: kcna-kind
+    env: lab
+
+scrape_configs:
+  # -------------------------------------------------------------------------
+  # Job 1: Prometheus scraping ITSELF.
+  # Every Prometheus server exposes its own /metrics. This gives you a target
+  # whose counters and histograms are produced by a real client library rather
+  # than by our simulator, so you can compare the two.
+  # -------------------------------------------------------------------------
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+        labels:
+          component: monitoring
+
+  # -------------------------------------------------------------------------
+  # Job 2: the Depot Portal metrics simulator.
+  # Addressed through the ClusterIP Service, so kube-proxy load-balances across
+  # replicas. NOTE the consequence: with more than one replica you would scrape
+  # a DIFFERENT random Pod each interval and the counters would appear to jump
+  # backwards. That is why real installs discover Pods individually rather than
+  # scraping through a Service. The Deployment is pinned to 1 replica for this
+  # reason, and Step 6 makes you prove it.
+  # -------------------------------------------------------------------------
+  - job_name: depot-portal
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets:
+          - depot-metrics-sim.kcna-lab24.svc.cluster.local:9100
+        labels:
+          depot: sg-tuas
+          service: depot-portal
+
+    # Relabelling, in outline. relabel_configs run BEFORE the scrape and rewrite
+    # the target's label set. Here we strip the ":9100" port from the automatic
+    # __address__ label to produce a tidier `instance` label.
+    # (metric_relabel_configs, by contrast, run AFTER the scrape and can drop
+    # individual series — the usual place to discard high-cardinality noise.)
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: instance
+        replacement: '${1}'
+        action: replace

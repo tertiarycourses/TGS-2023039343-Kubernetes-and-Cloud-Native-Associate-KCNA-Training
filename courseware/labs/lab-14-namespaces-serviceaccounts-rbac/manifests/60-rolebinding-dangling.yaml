@@ -1,0 +1,22 @@
+# FAILURE INJECTION (README section 6.2). Apply this on purpose.
+#
+# roleRef names a Role that DOES NOT EXIST. RBAC does not validate the
+# reference: the object is created happily, no error and no event is emitted,
+# and deploy-bot still cannot do anything.
+#
+# This is the "I created the RoleBinding and it still says Forbidden" ticket.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deploy-bot-dangling
+  namespace: kcna-lab14
+  labels:
+    kcna.tertiaryinfotech.com/intent: failure-injection
+subjects:
+  - kind: ServiceAccount
+    name: deploy-bot
+    namespace: kcna-lab14
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: deployment-manager

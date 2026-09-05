@@ -1,0 +1,7 @@
+workload,manifest,mechanism,node_label_key,node_label_value,apply_label,toleration_key,toleration_value,toleration_effect,expected_phase
+gate-scanner,10-pod-nodeselector-gate-scanner.yaml,nodeSelector,mfs.io/zone,sg-harbourfront,yes,,,,Running
+manifest-store,20-pod-affinity-required-manifest-store.yaml,requiredNodeAffinity,mfs.io/disk,ssd,yes,,,,Running
+eta-predictor,30-pod-affinity-preferred-eta-predictor.yaml,preferredNodeAffinity,mfs.io/zone,sg-tuas,no,,,,Running
+draft-optimiser,40-pod-affinity-unsatisfiable.yaml,requiredNodeAffinity,mfs.io/hardware,gpu-a100,no,,,,Pending
+yard-report,50-pod-no-toleration-yard-report.yaml,none,,,no,,,,Pending
+crane-controller,60-pod-toleration-crane-controller.yaml,toleration,,,no,mfs.io/maintenance,window,NoSchedule,Running

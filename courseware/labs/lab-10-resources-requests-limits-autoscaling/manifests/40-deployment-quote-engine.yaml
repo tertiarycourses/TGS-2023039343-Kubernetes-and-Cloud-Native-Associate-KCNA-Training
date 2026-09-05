@@ -1,0 +1,57 @@
+# The HPA target. Resource values come from data/workload-profiles.csv row
+# "quote-engine": requests 100m/96Mi, limits 300m/256Mi -> Burstable.
+#
+# An HPA on cpu utilisation is a percentage OF THE REQUEST, so the request is
+# not merely a scheduling hint here - it is the denominator of the autoscaling
+# maths. averageUtilization: 60 means "scale when mean usage exceeds 60m",
+# because 60% of the 100m request is 60m.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote-engine
+  namespace: kcna-lab10
+  labels:
+    app: quote-engine
+    tier: edge
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: quote-engine
+  template:
+    metadata:
+      labels:
+        app: quote-engine
+        tier: edge
+        qos-demo: burstable
+    spec:
+      containers:
+        - name: engine
+          image: hashicorp/http-echo:1.0
+          args:
+            - -listen=:5678
+            - -text=MFS rate quote engine
+          ports:
+            - name: http
+              containerPort: 5678
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 96Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      terminationGracePeriodSeconds: 5

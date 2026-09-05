@@ -1,0 +1,19 @@
+# Lab 19 — namespace isolation boundary.
+#
+# IMPORTANT FOR CLEANUP: a StatefulSet's volumeClaimTemplates create real
+# PersistentVolumeClaims that are DELIBERATELY NOT deleted when the
+# StatefulSet is deleted. Those PVCs are namespaced, so deleting this
+# namespace removes them — but Section 8 of the README also shows the
+# explicit, namespace-scoped PVC delete, because on a real cluster you rarely
+# get to throw the whole namespace away.
+#
+# This lab creates NO cluster-scoped objects.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab19
+  labels:
+    kubernetes.io/metadata.name: kcna-lab19
+    kcna.tertiaryinfotech.com/course: tgs-2023039343
+    kcna.tertiaryinfotech.com/lab: "19"
+    kcna.tertiaryinfotech.com/day: "4"

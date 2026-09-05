@@ -1,0 +1,14 @@
+{
+  "goal": "Prove that a container's writable layer is discarded with the Pod, then use emptyDir to share scratch state between containers in one Pod and hostPath to reach the node's filesystem — while learning exactly why hostPath is a security liability.",
+  "produces": [
+    "A destroyed-and-recreated Pod that demonstrably loses its container-layer data, and an emptyDir-backed report served over HTTP by a sibling container.",
+    "A memory-backed emptyDir (tmpfs) with an enforced sizeLimit, evidenced by mount output and an ENOSPC write failure.",
+    "A read-only hostPath mount of the node's /var/log plus a diagnosed FailedMount event from a hostPath type assertion."
+  ],
+  "concepts": [
+    "Container filesystem ephemerality and the copy-on-write writable layer",
+    "emptyDir lifecycle: created on Pod scheduling, destroyed on Pod removal",
+    "emptyDir.medium Memory (tmpfs) versus node-disk backing, and sizeLimit enforcement",
+    "hostPath type assertions, readOnly mounts, and node-escape risk"
+  ]
+}

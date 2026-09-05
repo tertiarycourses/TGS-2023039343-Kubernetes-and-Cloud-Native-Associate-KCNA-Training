@@ -1,0 +1,66 @@
+# ============================================================================
+# Lab 21 / Step 8 — the SAME desired state expressed for Flux, for READING.
+#
+# ⚠️  DO NOT APPLY THIS FILE. `source.toolkit.fluxcd.io` and
+#     `kustomize.toolkit.fluxcd.io` are CRDs installed by Flux, which this
+#     lab does not install. Kept out of manifests/ for that reason.
+#
+# Compare it with argocd-application.yaml. The vocabulary differs; the model
+# is identical:
+#
+#   Argo CD                          Flux
+#   -------                          ----
+#   Application.spec.source          GitRepository (a separate object)
+#   Application.spec.destination     Kustomization.spec.targetNamespace
+#   syncPolicy.automated.prune       Kustomization.spec.prune
+#   syncPolicy.automated.selfHeal    Kustomization.spec.force / drift detection
+#   (built-in polling)               Kustomization.spec.interval
+#
+# Argo CD packs source + destination + policy into one object and ships a UI.
+# Flux splits them into composable controllers and leans on CLI + Git. Both
+# implement the same loop: observe Git, observe the cluster, converge.
+# ============================================================================
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: tracklane
+  namespace: flux-system
+spec:
+  # How often the source-controller re-fetches the repository.
+  interval: 1m
+  url: https://github.com/tertiarycourses/TGS-2023039343-Kubernetes-and-Cloud-Native-Associate-KCNA-Training
+  ref:
+    branch: main
+  # Verifying commit signatures is how you stop an attacker with write access
+  # to the repo from shipping to production.
+  ignore: |
+    /*
+    !/courseware/labs/lab-21-helm-kustomize-gitops/
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: tracklane-dev
+  namespace: flux-system
+spec:
+  # The reconciliation interval. Flux re-applies on this cadence regardless of
+  # whether Git changed — which is exactly how drift gets corrected.
+  interval: 5m
+  # Where in the repo. Flux runs `kustomize build` on this directory.
+  path: ./courseware/labs/lab-21-helm-kustomize-gitops/kustomize/overlays/dev
+  sourceRef:
+    kind: GitRepository
+    name: tracklane
+  # prune: delete objects removed from Git. Same semantics as Argo CD's prune.
+  prune: true
+  targetNamespace: kcna-lab21
+  # Wait for the applied resources to become Ready before reporting success.
+  wait: true
+  timeout: 3m
+  # Health checks Flux must see pass before the Kustomization is Ready.
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: tracklane-dev
+      namespace: kcna-lab21

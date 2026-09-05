@@ -1,0 +1,60 @@
+# This lab uses SERVICE backends (`backend.service`), which is what an Ingress
+# points at in essentially every real deployment. The Service is a required
+# layer of indirection: a rule cannot name a Pod, a Deployment or an external
+# URL directly. These three ClusterIP Services are the routing targets.
+#
+# Precision, because it is examinable: networking.k8s.io/v1 also defines
+# `backend.resource`, a typed reference to another object, as an ALTERNATIVE to
+# `backend.service`. Support for it varies by controller and it is out of scope
+# here - but "an Ingress can only target a Service" is not what the API says.
+# https://kubernetes.io/docs/reference/kubernetes-api/networking/ingress-v1/
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-svc
+  namespace: kcna-lab13
+  labels:
+    app: catalog
+spec:
+  type: ClusterIP
+  selector:
+    app: catalog
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout-svc
+  namespace: kcna-lab13
+  labels:
+    app: checkout
+spec:
+  type: ClusterIP
+  selector:
+    app: checkout
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: route-fallback-svc
+  namespace: kcna-lab13
+  labels:
+    app: route-fallback
+spec:
+  type: ClusterIP
+  selector:
+    app: route-fallback
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

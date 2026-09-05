@@ -1,0 +1,5 @@
+name,type,cluster_ip,port,target_port,node_port,external_ip_on_kind,reachable_from_laptop
+booking-edge-clusterip,ClusterIP,allocated,80,5678,none,none,no - use kubectl port-forward
+booking-edge-nodeport,NodePort,allocated,80,5678,30080,none,only if the kind cluster was created with extraPortMappings
+booking-edge-lb,LoadBalancer,allocated,80,5678,auto,pending-forever,no - kind has no cloud-controller-manager
+booking-edge-headless,ClusterIP,None,80,5678,none,none,no - DNS returns Pod IPs and there is no virtual IP

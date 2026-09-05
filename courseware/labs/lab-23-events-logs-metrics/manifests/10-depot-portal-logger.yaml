@@ -1,0 +1,108 @@
+# Lab 23 · Part 4 — a two-container Pod that produces REAL log streams.
+#
+#   container "portal"        replays the synthetic access log from data/ to
+#                             stdout, one line every 2 seconds, forever.
+#   container "audit-sidecar" writes to a FILE on a shared emptyDir and also
+#                             tails that file to stdout. This is the classic
+#                             sidecar log-shipping shape, and it is why
+#                             node-level log agents exist: only what reaches
+#                             stdout/stderr is captured by the container runtime
+#                             and therefore visible to `kubectl logs`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depot-portal
+  namespace: kcna-lab23
+  labels:
+    app: depot-portal
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: depot-portal
+  template:
+    metadata:
+      labels:
+        app: depot-portal
+        app.kubernetes.io/part-of: depot-portal
+        tier: frontend
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: access-log-source
+          configMap:
+            name: depot-access-log
+        - name: audit-spool
+          emptyDir: {}
+      containers:
+        # ------------------------------------------------------------------
+        - name: portal
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              echo "[portal] replaying depot access log from ConfigMap"
+              while true; do
+                while IFS= read -r line; do
+                  echo "$line"
+                  sleep 2
+                done < /etc/depot/depot-portal-access.log
+                echo "[portal] end of corpus, looping"
+              done
+          volumeMounts:
+            - name: access-log-source
+              mountPath: /etc/depot
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+        # ------------------------------------------------------------------
+        - name: audit-sidecar
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              mkdir -p /var/log/depot
+              : > /var/log/depot/audit.log
+              # Writer: appends an audit record to a FILE, not to stdout.
+              (
+                n=0
+                while true; do
+                  n=$((n + 1))
+                  echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) AUDIT seq=$n actor=gate-scanner action=scan result=accepted" \
+                    >> /var/log/depot/audit.log
+                  sleep 5
+                done
+              ) &
+              # Shipper: this is the ONLY reason the file becomes visible to
+              # `kubectl logs`. Remove it and the records are invisible to the
+              # cluster's log plumbing.
+              exec tail -n +1 -f /var/log/depot/audit.log
+          volumeMounts:
+            - name: audit-spool
+              mountPath: /var/log/depot
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

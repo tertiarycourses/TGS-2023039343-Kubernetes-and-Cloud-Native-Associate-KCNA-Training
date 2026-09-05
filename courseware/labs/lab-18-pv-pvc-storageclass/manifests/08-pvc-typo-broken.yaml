@@ -1,0 +1,26 @@
+# Lab 18 / FAILURE INJECTION — deliberately broken. DO NOT "fix" this file.
+#
+# The StorageClass name is misspelt: `tracklane-manul` instead of
+# `tracklane-manual`. The PVC is syntactically valid, the API server accepts
+# it happily, and it then sits in Pending forever.
+#
+# This is the single most common storage ticket in a real cluster, and the
+# reason it is hard is that `kubectl get pvc` tells you nothing beyond
+# "Pending". The diagnosis lives in `kubectl describe pvc` events.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archive-claim-typo
+  namespace: kcna-lab18
+  labels:
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "18"
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: tracklane-manul
+  resources:
+    requests:
+      storage: 512Mi

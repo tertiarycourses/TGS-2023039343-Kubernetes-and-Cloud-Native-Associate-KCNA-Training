@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote-api
+  namespace: kcna-lab11
+  labels:
+    app: quote-api
+spec:
+  type: ClusterIP
+  # The selector is the ONLY link between this Service and any Pod.
+  # The endpoints controller turns this selector into an EndpointSlice.
+  selector:
+    app: quote-api
+  ports:
+    - name: http
+      # port      = the port the Service itself listens on (client-facing)
+      port: 80
+      # targetPort = the port on the Pod. Here it is the NAME declared in the
+      #              Deployment's container ports, which resolves to 8080.
+      targetPort: http
+      protocol: TCP

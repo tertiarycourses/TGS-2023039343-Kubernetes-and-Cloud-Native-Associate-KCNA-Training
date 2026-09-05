@@ -1,0 +1,107 @@
+{{/*
+Lab 21 — the Deployment. This template is the one worth reading line by line.
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tracklane.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tracklane.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "tracklane.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tracklane.labels" . | nindent 8 }}
+      annotations:
+        {{/*
+          THE CHECKSUM ANNOTATION — the most useful four lines in any chart.
+          It hashes the rendered ConfigMap template. When a config value
+          changes, this annotation changes, the Pod template changes, and the
+          Deployment rolls. Without it, `helm upgrade` updates the ConfigMap
+          and the running Pods keep serving the OLD config indefinitely,
+          because nothing in the Pod spec changed.
+        */}}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      terminationGracePeriodSeconds: 10
+      {{- with .Values.serviceAccount }}
+      {{- if .name }}
+      serviceAccountName: {{ .name }}
+      {{- end }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: lanes
+          configMap:
+            name: {{ include "tracklane.fullname" . }}-lanes
+            defaultMode: 0444
+      containers:
+        - name: web
+          {{/* Rendered through the guard helper, which refuses `latest`. */}}
+          image: {{ include "tracklane.validateImage" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "tracklane.fullname" . }}-config
+          volumeMounts:
+            - name: lanes
+              mountPath: /usr/share/nginx/html/lanes
+              readOnly: true
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{/*
+  CONDITIONAL RESOURCE. The PodDisruptionBudget only exists when the values
+  file asks for it — dev renders 3 objects, prod renders 4. This is the
+  capability Kustomize does not have: Kustomize can patch a resource, but it
+  cannot conditionally bring one into existence.
+*/}}
+{{- if .Values.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "tracklane.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tracklane.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "tracklane.selectorLabels" . | nindent 6 }}
+{{- end }}

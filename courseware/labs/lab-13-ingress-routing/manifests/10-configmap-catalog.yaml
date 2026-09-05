@@ -1,0 +1,43 @@
+# The index.html value is a byte-for-byte copy of data/catalog-index.html:
+#   kubectl create configmap catalog-content -n kcna-lab13 \
+#     --from-file=index.html=data/catalog-index.html
+# verification/checks.sh asserts the two stay in sync.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalog-content
+  namespace: kcna-lab13
+  labels:
+    app: catalog
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><meta charset="utf-8"><title>Meridian Freight - Container Catalog</title></head>
+    <body>
+    <h1>Meridian Freight Pte Ltd</h1>
+    <p>service: catalog</p>
+    <p>namespace: kcna-lab13</p>
+    <p>route: shop.meridianfreight.internal/catalog (pathType Prefix)</p>
+    <p>build: 2026.09.05-lab13</p>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalog-nginx
+  namespace: kcna-lab13
+  labels:
+    app: catalog
+data:
+  default.conf: |
+    server {
+        listen       8080;
+        server_name  _;
+        location / {
+            root  /usr/share/nginx/html;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+        }
+    }

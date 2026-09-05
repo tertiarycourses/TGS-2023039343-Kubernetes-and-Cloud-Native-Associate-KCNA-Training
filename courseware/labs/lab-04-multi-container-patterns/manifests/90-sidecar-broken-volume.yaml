@@ -1,0 +1,85 @@
+# DELIBERATELY BROKEN — failure injection for README section 6.
+#
+# The `shipper` container mounts a volume called `applogs`, but the Pod only
+# declares a volume called `varlog`. This is the classic multi-container mistake:
+# each container has its OWN volumeMounts list, and nothing warns you when the
+# two containers do not actually share anything.
+#
+# Unlike a missing ConfigMap (Lab 01), this one is caught by the API server at
+# admission time — the reference is INTERNAL to the object, so it can be
+# validated without looking anything up.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: depot-sidecar-broken
+  namespace: kcna-lab04
+  labels:
+    app.kubernetes.io/name: depot-api
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-04
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          while true; do
+            echo "`date -u +%FT%TZ` depot=MF-SIN-02 path=/api/bookings status=200" \
+              >> /var/log/depot/access.log
+            sleep 5
+          done
+      volumeMounts:
+        - name: varlog
+          mountPath: /var/log/depot
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+    - name: shipper
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          exec tail -n +1 -F /var/log/depot/access.log
+      volumeMounts:
+        # BUG: there is no volume named `applogs` in spec.volumes below.
+        - name: applogs
+          mountPath: /var/log/depot
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+  volumes:
+    - name: varlog
+      emptyDir:
+        sizeLimit: 16Mi

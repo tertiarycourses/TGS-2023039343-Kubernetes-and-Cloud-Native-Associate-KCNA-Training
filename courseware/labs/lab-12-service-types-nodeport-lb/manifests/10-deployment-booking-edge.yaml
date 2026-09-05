@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-edge
+  namespace: kcna-lab12
+  labels:
+    app: booking-edge
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: booking-edge
+  template:
+    metadata:
+      labels:
+        app: booking-edge
+        app.kubernetes.io/part-of: meridian-freight
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: http-echo
+          image: hashicorp/http-echo:1.0
+          args:
+            - "-listen=:5678"
+            # This string is the content of data/edge-banner.txt.
+            # verification/checks.sh asserts the served body still matches it.
+            - "-text=Meridian Freight booking-edge :: kcna-lab12"
+          ports:
+            - name: http
+              containerPort: 5678
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5

@@ -1,0 +1,110 @@
+# Lab 22 · Part 4 — manifest-indexer: the CORRECT pattern for a slow starter.
+#
+# The real Meridian "manifest indexer" rebuilds an in-memory shipment index on
+# boot. Here that is simulated with a 40 second sleep before the HTTP server
+# starts listening.
+#
+# startupProbe gives the container a LONG one-off grace window. While the
+# startup probe is still failing, the kubelet does not run the liveness or
+# readiness probes at all. Once it succeeds ONCE, it is never run again and the
+# other two probes take over with their own tight intervals.
+#
+#   startup budget = periodSeconds 5 x failureThreshold 24 = 120s
+#   real start time                                        ~ 40s
+#   headroom                                               ~ 80s
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manifest-indexer
+  namespace: kcna-lab22
+  labels:
+    app: manifest-indexer
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: manifest-indexer
+  template:
+    metadata:
+      labels:
+        app: manifest-indexer
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: webroot
+          emptyDir: {}
+      containers:
+        - name: indexer
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              echo "[indexer] $(date -u +%H:%M:%S) warming shipment manifest index..."
+              sleep 40
+              echo "manifest-indexer ready" > /www/index.html
+              echo "[indexer] $(date -u +%H:%M:%S) index warm; serving on :8080"
+              exec httpd -f -v -p 8080 -h /www
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: webroot
+              mountPath: /www
+          # STARTUP: the one-off grace window for slow boots.
+          startupProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 24
+          # These two only begin AFTER the startup probe has succeeded once.
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: manifest-indexer
+  namespace: kcna-lab22
+  labels:
+    app: manifest-indexer
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: manifest-indexer
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP

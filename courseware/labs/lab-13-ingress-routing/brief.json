@@ -1,0 +1,18 @@
+{
+  "goal": "Model Meridian Freight's host and path routing with Ingress, then verify the rules through a pinned Traefik controller. Distinguish accepted API configuration from working HTTP routing.",
+  "produces": [
+    "Ingress host, Prefix and Exact rules aligned with data/routing-table.csv",
+    "A TLS declaration and lab TLS Secret",
+    "Controller inventory and observed routing evidence",
+    "Optional Traefik 41.4.0 chart installation with an explicit IngressClass",
+    "Seven live HTTP checks, including element boundaries and the standalone fallback Ingress"
+  ],
+  "concepts": [
+    "Ingress declares routing; a controller implements it",
+    "Controller discovery and end-to-end probes establish actual behaviour; an empty ADDRESS alone does not",
+    "Explicit ingressClassName and controller-specific adoption",
+    "Prefix path elements, Exact matching and strictPrefixMatching",
+    "TLS termination at the controller; Service and resource backend types",
+    "Traefik's rule-free fallback Ingress and routing through port-forward"
+  ]
+}

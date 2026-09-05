@@ -1,0 +1,33 @@
+# Gate scanner - the simplest placement control there is.
+# nodeSelector is a plain equality match against node labels. Every key/value
+# listed must be present on the node or the Pod is unschedulable.
+# The label mfs.io/zone=sg-harbourfront is applied by the learner in Step 2,
+# taken from data/node-placement-policy.csv.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gate-scanner
+  namespace: kcna-lab09
+  labels:
+    app: gate-scanner
+    tier: edge
+    placement: nodeselector
+spec:
+  nodeSelector:
+    mfs.io/zone: sg-harbourfront
+  containers:
+    - name: scanner
+      image: registry.k8s.io/pause:3.9
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  terminationGracePeriodSeconds: 3

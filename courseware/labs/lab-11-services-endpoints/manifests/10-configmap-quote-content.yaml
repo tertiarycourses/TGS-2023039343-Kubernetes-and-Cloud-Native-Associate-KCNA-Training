@@ -1,0 +1,43 @@
+# Declarative equivalent of:
+#   kubectl create configmap quote-api-content -n kcna-lab11 \
+#     --from-file=index.html=data/quote-api-index.html
+# The index.html value below is a byte-for-byte copy of data/quote-api-index.html.
+# verification/checks.sh asserts the two stay in sync.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quote-api-content
+  namespace: kcna-lab11
+  labels:
+    app: quote-api
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><meta charset="utf-8"><title>Meridian Freight - Quote API</title></head>
+    <body>
+    <h1>Meridian Freight Pte Ltd</h1>
+    <p>service: quote-api</p>
+    <p>namespace: kcna-lab11</p>
+    <p>listener: container port 8080 (named "http")</p>
+    <p>build: 2026.09.05-lab11</p>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quote-api-nginx
+  namespace: kcna-lab11
+  labels:
+    app: quote-api
+data:
+  default.conf: |
+    server {
+        listen       8080;
+        server_name  _;
+        location / {
+            root  /usr/share/nginx/html;
+            index index.html;
+        }
+    }

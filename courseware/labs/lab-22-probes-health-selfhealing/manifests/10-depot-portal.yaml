@@ -1,0 +1,131 @@
+# Lab 22 · Part 2 — depot-portal: readiness vs liveness on the SAME container.
+#
+# Design note for the learner:
+#   * liveness  -> /index.html  : "is the web server process alive?"
+#   * readiness -> /ready.html  : "is this replica fit to receive traffic?"
+# The two probes deliberately point at DIFFERENT files so you can break one
+# without breaking the other and observe the two different consequences.
+#
+# The content is seeded from the read-only ConfigMap `depot-portal-content`
+# into a writable emptyDir by an init container, so that you can delete
+# /usr/share/nginx/html/ready.html at runtime. ConfigMap volumes are mounted
+# read-only, which is why the copy step exists.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depot-portal
+  namespace: kcna-lab22
+  labels:
+    app: depot-portal
+    app.kubernetes.io/name: depot-portal
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: depot-portal
+  template:
+    metadata:
+      labels:
+        app: depot-portal
+        app.kubernetes.io/name: depot-portal
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      # Give the kubelet a bounded window to run preStop/SIGTERM handling.
+      terminationGracePeriodSeconds: 20
+      volumes:
+        - name: content-source
+          configMap:
+            name: depot-portal-content
+        - name: webroot
+          emptyDir: {}
+      initContainers:
+        - name: seed-content
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              cp -L /etc/depot/content/index.html /usr/share/nginx/html/index.html
+              cp -L /etc/depot/content/ready.html /usr/share/nginx/html/ready.html
+              echo "[seed] webroot populated:"
+              ls -l /usr/share/nginx/html
+          volumeMounts:
+            - name: content-source
+              mountPath: /etc/depot/content
+              readOnly: true
+            - name: webroot
+              mountPath: /usr/share/nginx/html
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      containers:
+        - name: portal
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: webroot
+              mountPath: /usr/share/nginx/html
+          # READINESS: gates Service traffic. Failing this removes the Pod from
+          # the EndpointSlice. It does NOT restart the container.
+          # Budget before removal: initialDelay 3s + (5s x 2 failures) = ~13s.
+          readinessProbe:
+            httpGet:
+              path: /ready.html
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 2
+          # LIVENESS: gates the container's life. Failing this kills and
+          # restarts the container. Deliberately slower and more forgiving.
+          # Budget before restart: initialDelay 10s + (10s x 3 failures) = ~40s.
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: depot-portal
+  namespace: kcna-lab22
+  labels:
+    app: depot-portal
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: depot-portal
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

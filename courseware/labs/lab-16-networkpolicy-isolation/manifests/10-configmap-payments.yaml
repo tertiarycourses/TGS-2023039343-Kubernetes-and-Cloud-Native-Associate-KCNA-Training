@@ -1,0 +1,42 @@
+# index.html is a byte-for-byte copy of data/payments-index.html:
+#   kubectl create configmap payments-content -n kcna-lab16 \
+#     --from-file=index.html=data/payments-index.html
+# verification/checks.sh asserts the two stay in sync.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payments-content
+  namespace: kcna-lab16
+  labels:
+    app: payments-api
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><meta charset="utf-8"><title>Meridian Freight - Payments API</title></head>
+    <body>
+    <h1>Meridian Freight Pte Ltd</h1>
+    <p>service: payments-api</p>
+    <p>namespace: kcna-lab16</p>
+    <p>sensitivity: RESTRICTED - only role=frontend should reach this</p>
+    <p>build: 2026.09.05-lab16</p>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payments-nginx
+  namespace: kcna-lab16
+  labels:
+    app: payments-api
+data:
+  default.conf: |
+    server {
+        listen       8080;
+        server_name  _;
+        location / {
+            root  /usr/share/nginx/html;
+            index index.html;
+        }
+    }

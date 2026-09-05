@@ -1,0 +1,14 @@
+{
+  "goal": "Run a real scrape target and a single self-contained Prometheus, read the text exposition format line by line, and query PromQL against metric names you produced yourself — including the error-ratio query that would have detected INC-4417.",
+  "produces": [
+    "A working exporter serving depot_portal_* metrics in Prometheus text format at /metrics, scraped by hand with wget before Prometheus ever touches it",
+    "A Prometheus Pod scraping two named static targets from a scrape config you wrote, with both targets reporting up == 1",
+    "A completed exposition worksheet recording counter-versus-gauge behaviour, the measured rate against its predicted band, and the up == 0 signal during failure injection"
+  ],
+  "concepts": [
+    "The four observability signals and which question each one answers",
+    "Pull versus push: Prometheus synthesises the up metric for free, so a failed scrape is itself the liveness signal",
+    "Counter, gauge and histogram: why rate() exists, why buckets are cumulative, and why le must survive aggregation",
+    "OpenTelemetry generates and collects, Prometheus stores and queries; Prometheus is CNCF-graduated, OpenTelemetry incubating, Grafana not CNCF at all"
+  ]
+}

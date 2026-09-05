@@ -1,0 +1,13 @@
+# Lab 23 — Events, Logs, Field Selectors and the Metrics Server
+# Meridian Freight Pte Ltd · Depot Portal platform
+# Creates the ONLY namespace this lab is allowed to touch.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab23
+  labels:
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-23
+    kcna.tertiaryinfotech.com/day: "5"
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest

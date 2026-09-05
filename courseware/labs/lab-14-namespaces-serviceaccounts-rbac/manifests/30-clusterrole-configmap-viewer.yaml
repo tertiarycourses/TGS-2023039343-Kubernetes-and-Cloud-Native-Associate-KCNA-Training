@@ -1,0 +1,48 @@
+# THE ONLY CLUSTER-SCOPED OBJECT THIS LAB CREATES.
+#
+# It is deliberately minimal and READ-ONLY: three verbs, one resource, core API
+# group. It contains no wildcards, no write verbs, no secrets, no nodes and no
+# escalation-capable resources (no rbac.authorization.k8s.io, no
+# */exec, no impersonate).
+#
+# A ClusterRole on its own GRANTS NOTHING. It is a reusable rule set. What
+# decides the scope is the binding:
+#
+#   RoleBinding        -> ClusterRole : permissions apply in the RoleBinding's
+#                                       NAMESPACE only.
+#   ClusterRoleBinding -> ClusterRole : permissions apply CLUSTER-WIDE.
+#
+# This lab uses the first form only. It creates NO ClusterRoleBinding, so no
+# privilege is widened beyond kcna-lab14.
+#
+# README section 8 deletes this object by exact name during cleanup.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kcna-lab14-configmap-viewer
+  labels:
+    kcna.tertiaryinfotech.com/lab: "lab-14"
+    app.kubernetes.io/part-of: meridian-freight
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+# A NAMESPACED RoleBinding that points at the ClusterRole above. This is the
+# pattern to reach for when a rule set is reused across many namespaces but the
+# grant must stay namespaced.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ops-reader-can-view-configmaps
+  namespace: kcna-lab14
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+subjects:
+  - kind: ServiceAccount
+    name: ops-reader
+    namespace: kcna-lab14
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kcna-lab14-configmap-viewer

@@ -1,0 +1,11 @@
+step,metric_name,metric_type,scrape_1_value,scrape_2_value,direction,rate_or_value_used,expected_band,your_result,matches_band
+3.5,depot_portal_shipments_scanned_total,counter,,,must increase,raw value,n/a,,
+3.5,depot_portal_queue_depth,gauge,,,may go either way,raw value,12 to 51,,
+3.7,depot_portal_scan_latency_seconds_bucket,histogram,,,cumulative across le,raw value,le=+Inf equals _count,,
+5.2,depot_portal_shipments_scanned_total,counter,,,,rate over 1m,0.7 to 1.1 per second,,
+5.5,depot_portal_http_requests_total,counter,,,,502 rate / total rate,well under 0.1,,
+5.6,depot_portal_scan_latency_seconds_bucket,histogram,,,,histogram_quantile 0.95 over 5m,a value in seconds not NaN,,
+5.8,prometheus_tsdb_head_series,gauge,,,,raw value,active series count,,
+5.9,up,gauge,,,,raw value,1 for both targets,,
+6.5,up{job=depot-portal},gauge,,,,raw value,0 after the injection,,
+6.7,depot_portal_queue_depth,gauge,,,,raw value,EMPTY - stale not zero,,

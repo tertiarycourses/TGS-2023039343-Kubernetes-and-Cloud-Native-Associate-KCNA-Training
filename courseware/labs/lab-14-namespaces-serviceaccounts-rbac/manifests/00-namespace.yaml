@@ -1,0 +1,17 @@
+# A Namespace is a NAME SCOPE, not a security boundary.
+# On its own it gives you: unique object names, a target for RBAC RoleBindings,
+# a target for ResourceQuota/LimitRange, and a deletion unit.
+# It does NOT give you: network isolation (see Lab 16), node or kernel
+# isolation, or any restriction on a subject holding cluster-wide permissions.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab14
+  labels:
+    kcna.tertiaryinfotech.com/lab: "lab-14"
+    kcna.tertiaryinfotech.com/day: "3"
+    app.kubernetes.io/part-of: meridian-freight
+    # Pod Security Admission: enforce the baseline profile in this namespace.
+    # This is a namespace-level control that DOES restrict workloads.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

@@ -1,0 +1,7 @@
+source,source_selector,destination,dest_selector,port,protocol,intended,expressed_by
+frontend,role=frontend,payments-api,app=payments-api,8080,TCP,allow,allow-frontend-to-payments
+reporting,role=reporting,payments-api,app=payments-api,8080,TCP,deny,no allow rule matches - default-deny-all applies
+frontend,role=frontend,kube-dns,k8s-app=kube-dns,53,UDP,allow,allow-dns-egress
+reporting,role=reporting,kube-dns,k8s-app=kube-dns,53,UDP,allow,allow-dns-egress
+frontend,role=frontend,internet,none,443,TCP,deny,default-deny-all egress
+payments-api,app=payments-api,frontend,role=frontend,8080,TCP,deny,frontend has no ingress allow rule

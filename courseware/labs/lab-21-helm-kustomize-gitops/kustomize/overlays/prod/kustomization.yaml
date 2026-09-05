@@ -1,0 +1,62 @@
+# Lab 21 / Kustomize OVERLAY — prod.
+#
+# Read this file side by side with ../dev/kustomization.yaml. The two files
+# together ARE the environment configuration, and the diff between them is
+# what a change reviewer needs to see. Nothing is hidden in a template.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kcna-lab21
+nameSuffix: -prod
+
+resources:
+  - ../../base
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: tracklane-prod
+      tracklane.kallangfreight.sg/environment: prod
+    includeSelectors: true
+
+replicas:
+  - name: tracklane
+    count: 3
+
+# The images transformer. Production pins the fully-qualified registry path
+# rather than the bare `nginx`, so the image cannot be silently resolved from
+# a different default registry on a different cluster. In a real pipeline CI
+# would rewrite `newTag` here to the immutable build tag or a digest.
+images:
+  - name: nginx
+    newName: docker.io/library/nginx
+    newTag: "1.27-alpine"
+
+configMapGenerator:
+  - name: tracklane-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=warn
+      - FEATURE_LANE_ETA=false
+      - CACHE_TTL_SECONDS=300
+      - ENVIRONMENT=prod
+
+# NOTE: prod does NOT override tracklane-lanes. It inherits the full
+# nine-lane dataset from ../../base/files/shipping-lanes.csv. Inheriting is
+# the default; only the delta is written down.
+
+patches:
+  - path: patch-resources.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: tracklane
+  # A JSON 6902 patch, for comparison with the strategic merge above. Use this
+  # form when you need to address a list element by index, or to `remove` a
+  # field — neither of which a strategic-merge patch can express.
+  - path: patch-probe-timing.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: tracklane

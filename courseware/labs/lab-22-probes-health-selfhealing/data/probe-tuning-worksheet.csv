@@ -1,0 +1,7 @@
+workload,probe_type,path,initial_delay_s,period_s,failure_threshold,budget_before_action_s,observed_time_to_first_success_s,consequence_of_failure,verdict
+depot-portal,readiness,/ready.html,3,5,2,13,,Pod removed from Service EndpointSlice; container NOT restarted,
+depot-portal,liveness,/index.html,10,10,3,40,,Container killed and restarted by the kubelet,
+manifest-indexer,startup,/index.html,0,5,24,120,,Liveness and readiness are suspended until startup succeeds,
+manifest-indexer,liveness,/index.html,0,10,3,30,,Container killed and restarted by the kubelet,
+manifest-indexer,readiness,/index.html,0,5,2,10,,Pod removed from Service EndpointSlice,
+manifest-indexer-outage,liveness,/index.html,5,5,2,15,,RESTART LOOP - probe budget is shorter than real startup time,

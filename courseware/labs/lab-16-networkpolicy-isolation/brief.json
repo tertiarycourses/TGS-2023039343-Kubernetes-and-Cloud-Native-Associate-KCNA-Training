@@ -1,0 +1,14 @@
+{
+  "goal": "Close the auditors' finding that any Pod can reach Meridian Freight's payments-api by building default-deny plus one selective allow - and then determine honestly whether this cluster's CNI enforces any of it.",
+  "produces": [
+    "A default-deny-all NetworkPolicy (podSelector {}, Ingress and Egress) plus the DNS egress rule that default-deny otherwise breaks",
+    "A matched ingress/egress pair admitting only role=frontend to app=payments-api on the POD port 8080, diffed against data/traffic-matrix.csv",
+    "A recorded enforcement determination: the CNI DaemonSet inventory and a live probe whose result is reported rather than assumed"
+  ],
+  "concepts": [
+    "kind's default CNI kindnet stores NetworkPolicies and enforces none - the API is universal, enforcement is the CNI's job",
+    "There is no deny rule: a Pod becomes deny-by-default the moment any policy selects it, and allows are the union of all matching rules",
+    "NetworkPolicy ports are Pod ports, evaluated below the Service abstraction after kube-proxy's DNAT",
+    "namespaceSelector and podSelector in one peer item are ANDed; split across two items they are ORed"
+  ]
+}

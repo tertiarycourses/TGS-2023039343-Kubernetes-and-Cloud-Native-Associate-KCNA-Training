@@ -1,0 +1,4 @@
+revision,release,image,configmap,replicas,maxSurge,maxUnavailable,max_pods_during_rollout,min_available_during_rollout,change_cause
+1,r24.1,nginx:1.27-alpine,portal-site-r24-1,4,1,1,5,3,r24.1 - initial portal release
+2,r24.2,nginx:1.27-alpine,portal-site-r24-2,4,1,0,5,4,r24.2 - customs banner zero-unavailable rollout
+3,r24.3,nginx:1.27-alpine-mfs-hotfix,portal-site-r24-2,4,1,0,5,4,r24.3 - BROKEN image tag (deliberate)

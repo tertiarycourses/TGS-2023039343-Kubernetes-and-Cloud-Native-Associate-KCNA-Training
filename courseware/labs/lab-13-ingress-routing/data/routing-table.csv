@@ -1,0 +1,4 @@
+host,path,pathType,service,port
+shop.meridianfreight.internal,/catalog,Prefix,catalog-svc,80
+shop.meridianfreight.internal,/checkout/status,Exact,checkout-svc,80
+tracking.meridianfreight.internal,/,Prefix,catalog-svc,80

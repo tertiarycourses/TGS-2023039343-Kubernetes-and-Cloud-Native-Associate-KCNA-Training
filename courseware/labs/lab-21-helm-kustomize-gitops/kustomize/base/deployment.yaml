@@ -1,0 +1,70 @@
+# Lab 21 / Kustomize BASE — plain, valid, applyable Kubernetes YAML.
+#
+# THE DEFINING PROPERTY OF A KUSTOMIZE BASE: there are no placeholders, no
+# templating delimiters and no custom syntax. You can `kubectl apply -f` this
+# file directly and it works. Your editor's YAML schema validation works.
+# kubeconform validates it. That is the whole trade against Helm.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracklane
+  labels:
+    app.kubernetes.io/name: tracklane
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: tracklane
+spec:
+  # Overlays override this with the `replicas:` transformer, not a patch.
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tracklane
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tracklane
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: tracklane
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: lanes
+          configMap:
+            # Kustomize rewrites this reference automatically to the generated
+            # name (with its content hash and any nameSuffix). You never write
+            # the hash yourself.
+            name: tracklane-lanes
+            defaultMode: 0444
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tracklane-config
+          volumeMounts:
+            - name: lanes
+              mountPath: /usr/share/nginx/html/lanes
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab06
+  labels:
+    kubernetes.io/metadata.name: kcna-lab06
+    course: kcna
+    lab: lab-06
+    owner: mfs-platform

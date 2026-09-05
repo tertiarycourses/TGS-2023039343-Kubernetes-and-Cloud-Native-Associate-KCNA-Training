@@ -1,0 +1,14 @@
+{
+  "goal": "Grant Meridian Freight's night-shift operators read-only access to one namespace and nothing else, then prove every allow and every deny with kubectl auth can-i instead of asserting it.",
+  "produces": [
+    "A namespaced Role/RoleBinding giving ops-reader get, list, watch on pods plus the separate pods/log subresource",
+    "A read-only ClusterRole bound by a RoleBinding - reusable rules, namespaced grant, and zero ClusterRoleBindings",
+    "A 12-row permission matrix in data/rbac-matrix.csv replayed through kubectl auth can-i --as=system:serviceaccount:kcna-lab14:<sa>"
+  ],
+  "concepts": [
+    "A Namespace scopes names, bindings and quotas - it is not a network, node or privilege boundary",
+    "A ServiceAccount is an identity with zero permissions until a binding grants them",
+    "ClusterRole + RoleBinding grants only inside that namespace; only a ClusterRoleBinding is cluster-wide",
+    "RBAC is additive with no deny rule, and roleRef is immutable while a dangling roleRef fails silently"
+  ]
+}

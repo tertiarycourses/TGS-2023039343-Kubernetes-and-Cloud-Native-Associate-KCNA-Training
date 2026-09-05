@@ -1,0 +1,4 @@
+ordinal,depot_code,depot_name,region,berths,ledger_shard
+0,depot-a,Kallang Basin Depot,SG-Central,4,shard-0
+1,depot-b,Tuas Mega Depot,SG-West,9,shard-1
+2,depot-c,Changi Air Depot,SG-East,6,shard-2

@@ -1,0 +1,21 @@
+# FAILURE INJECTION (Step 9). Apply this on purpose.
+# The selector says app: quote-apis (trailing "s"). No Pod carries that label,
+# so the endpoints controller produces an EndpointSlice with ZERO addresses and
+# every connection to the ClusterIP is refused.
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote-api-broken
+  namespace: kcna-lab11
+  labels:
+    app: quote-api
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  type: ClusterIP
+  selector:
+    app: quote-apis
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

@@ -1,0 +1,23 @@
+# Lab 21 / dev overlay — strategic-merge patch.
+#
+# The `name` here must match the target's name BEFORE nameSuffix is applied.
+# The containers list is merged by the `name` key (that is what makes it a
+# *strategic* merge rather than a plain overwrite), so this patch changes only
+# the resources block of the container called "web" and leaves image, ports,
+# probes, volumeMounts and securityContext untouched.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracklane
+spec:
+  template:
+    spec:
+      containers:
+        - name: web
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

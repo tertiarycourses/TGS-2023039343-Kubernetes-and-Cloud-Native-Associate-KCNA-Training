@@ -1,0 +1,21 @@
+# ResourceQuota - an aggregate budget for the whole namespace.
+#
+# Once a quota names a compute resource, every Pod created afterwards MUST
+# declare that resource (or inherit it from the LimitRange above), otherwise
+# admission fails with "must specify limits.cpu".
+#
+# requests.cpu = 1 is the budget deliberately breached by
+# 60-pod-quota-violation.yaml in the Failure injection section.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mfs-lab-quota
+  namespace: kcna-lab10
+spec:
+  hard:
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "3"
+    limits.memory: 2Gi
+    pods: "15"
+    count/deployments.apps: "5"

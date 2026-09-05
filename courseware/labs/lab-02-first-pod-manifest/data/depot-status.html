@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Meridian Freight — Depot Portal (status)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: #16233a; }
+    h1 { font-size: 1.4rem; }
+    table { border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #c8d2e0; padding: 0.35rem 0.7rem; font-size: 0.9rem; }
+    th { background: #eef3fa; text-align: left; }
+    .ok { color: #1a7f47; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Meridian Freight Pte Ltd — Depot Portal</h1>
+  <p class="ok">STATUS: OK — served from a Pod in namespace kcna-lab02</p>
+  <p>Build: depot-portal 0.1.0-poc &middot; source of truth:
+     <a href="/depots.csv">/depots.csv</a></p>
+  <table>
+    <tr><th>Depot</th><th>Region</th><th>Bays</th><th>Cold chain</th></tr>
+    <tr><td>MF-SIN-01 Jurong Port Depot</td><td>Singapore West</td><td>24</td><td>yes</td></tr>
+    <tr><td>MF-SIN-02 Tuas Megahub</td><td>Singapore West</td><td>48</td><td>yes</td></tr>
+    <tr><td>MF-SIN-03 Changi Air Freight Annex</td><td>Singapore East</td><td>16</td><td>no</td></tr>
+    <tr><td>MF-KUL-01 Port Klang North Gate</td><td>Selangor</td><td>36</td><td>yes</td></tr>
+    <tr><td>MF-JKT-01 Tanjung Priok Staging</td><td>Jakarta</td><td>26</td><td>no</td></tr>
+  </table>
+</body>
+</html>

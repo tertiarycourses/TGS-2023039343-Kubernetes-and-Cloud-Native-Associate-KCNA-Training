@@ -1,0 +1,59 @@
+# DELIBERATELY BROKEN - used in the Failure injection section.
+# The container looks for /data/customs-export.csv, which is NOT one of the
+# three keys in the berth-data ConfigMap, so every attempt exits non-zero.
+# With backoffLimit: 2 the Job gives up after 1 initial attempt + 2 retries
+# and reports reason=BackoffLimitExceeded.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: customs-export
+  namespace: kcna-lab08
+  labels:
+    app: customs-export
+    tier: batch
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: customs-export
+        tier: batch
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: export
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "customs-export starting"
+              wc -l /data/customs-export.csv || {
+                echo "EXPORT-FAILED: source file missing"
+                exit 1
+              }
+              echo "EXPORT-OK"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: data
+          configMap:
+            name: berth-data
+      terminationGracePeriodSeconds: 5

@@ -1,0 +1,17 @@
+{
+  "schema": "meridianfreight/tariff-rates/v1",
+  "generated": "2026-09-01T00:00:00Z",
+  "currency": "SGD",
+  "rates": [
+    { "depot_code": "MF-SIN-01", "bay_hour": 42.50, "cold_chain_surcharge": 18.00, "after_hours_multiplier": 1.35 },
+    { "depot_code": "MF-SIN-02", "bay_hour": 51.00, "cold_chain_surcharge": 21.50, "after_hours_multiplier": 1.40 },
+    { "depot_code": "MF-SIN-03", "bay_hour": 38.75, "cold_chain_surcharge": 0.00,  "after_hours_multiplier": 1.25 },
+    { "depot_code": "MF-SIN-04", "bay_hour": 46.00, "cold_chain_surcharge": 19.25, "after_hours_multiplier": 1.30 },
+    { "depot_code": "MF-JHB-01", "bay_hour": 22.40, "cold_chain_surcharge": 0.00,  "after_hours_multiplier": 1.20 },
+    { "depot_code": "MF-JHB-02", "bay_hour": 25.90, "cold_chain_surcharge": 12.75, "after_hours_multiplier": 1.22 },
+    { "depot_code": "MF-KUL-01", "bay_hour": 28.60, "cold_chain_surcharge": 14.00, "after_hours_multiplier": 1.28 },
+    { "depot_code": "MF-BKK-01", "bay_hour": 19.80, "cold_chain_surcharge": 0.00,  "after_hours_multiplier": 1.15 },
+    { "depot_code": "MF-HAN-01", "bay_hour": 21.30, "cold_chain_surcharge": 11.40, "after_hours_multiplier": 1.18 },
+    { "depot_code": "MF-JKT-01", "bay_hour": 23.15, "cold_chain_surcharge": 0.00,  "after_hours_multiplier": 1.21 }
+  ]
+}

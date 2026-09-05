@@ -1,0 +1,9 @@
+step,query_used,object_kind,event_type,event_reason,count_seen,what_it_tells_you,is_it_actionable
+3.2,kubectl get events --sort-by=.lastTimestamp,,,,,,
+3.4,--field-selector type=Warning,,,,,,
+3.5,--field-selector involvedObject.kind=Pod\,type=Warning,,,,,,
+3.6,--field-selector reason=FailedMount,,,,,,
+3.7,--field-selector involvedObject.name=<your-pod>,,,,,,
+4.3,kubectl logs -c portal --since=1m,,,,,,
+4.5,kubectl logs --previous,,,,,,
+5.4,kubectl top pods,,,,,,

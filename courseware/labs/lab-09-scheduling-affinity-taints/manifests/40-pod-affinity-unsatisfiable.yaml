@@ -1,0 +1,40 @@
+# DELIBERATELY UNSCHEDULABLE - used in the Failure injection section.
+# No node in a kind cluster carries mfs.io/hardware=gpu-a100, and the term is
+# REQUIRED, so this Pod stays Pending forever with a FailedScheduling event.
+# It is not an error, not a crash and not a retry loop that resolves: the
+# scheduler simply has no candidate node.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: draft-optimiser
+  namespace: kcna-lab09
+  labels:
+    app: draft-optimiser
+    tier: analytics
+    placement: unsatisfiable
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: mfs.io/hardware
+                operator: In
+                values:
+                  - gpu-a100
+  containers:
+    - name: optimiser
+      image: registry.k8s.io/pause:3.9
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  terminationGracePeriodSeconds: 3

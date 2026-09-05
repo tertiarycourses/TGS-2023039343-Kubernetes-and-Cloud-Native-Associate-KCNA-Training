@@ -1,0 +1,160 @@
+# Lab 25 · the FIXED versions of all four broken workloads.
+#
+# Do NOT apply this until you have diagnosed each ticket yourself and written
+# your root cause into data/triage-worksheet.csv. Applying it first turns a
+# diagnostic exercise into a copy-paste exercise.
+#
+# Each fix is a MINIMAL change. The whole point of good triage is that the
+# repair is small once the phase is identified — the hard part was finding it.
+# =========================================================================
+# DEP-1041 fix — correct the misspelt image tag.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depot-api
+  namespace: kcna-lab25
+  labels:
+    app: depot-api
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/ticket: DEP-1041
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: depot-api
+  template:
+    metadata:
+      labels:
+        app: depot-api
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: api
+          # WAS: nginx:1.27-alpne
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+---
+# DEP-1042 fix — run a command that exists in the image.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipment-worker
+  namespace: kcna-lab25
+  labels:
+    app: shipment-worker
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/ticket: DEP-1042
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: shipment-worker
+  template:
+    metadata:
+      labels:
+        app: shipment-worker
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "[worker] starting shipment worker for depot sg-tuas"
+              # WAS: exec /usr/local/bin/depot-shipment-worker --config ...
+              # The binary does not exist in this image. Simulate the worker
+              # with something the image actually provides.
+              while true; do
+                echo "[worker] $(date -u +%H:%M:%S) processed shipment batch"
+                sleep 15
+              done
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+# DEP-1043 fix — request what the workload actually needs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manifest-indexer
+  namespace: kcna-lab25
+  labels:
+    app: manifest-indexer
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/ticket: DEP-1043
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: manifest-indexer
+  template:
+    metadata:
+      labels:
+        app: manifest-indexer
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: indexer
+          image: busybox:1.36
+          command: ["/bin/sh", "-c", "sleep 3600"]
+          resources:
+            requests:
+              # WAS: cpu "64" / memory 512Gi
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+# DEP-1044 fix — the Deployment is unchanged; only the Service selector moves.
+apiVersion: v1
+kind: Service
+metadata:
+  name: depot-tracker
+  namespace: kcna-lab25
+  labels:
+    app: depot-tracker
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/ticket: DEP-1044
+spec:
+  type: ClusterIP
+  selector:
+    # WAS: app: depot-tracking  (no Pod carried that label)
+    app: depot-tracker
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5678
+      protocol: TCP

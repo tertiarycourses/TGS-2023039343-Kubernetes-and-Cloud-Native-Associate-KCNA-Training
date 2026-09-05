@@ -1,0 +1,51 @@
+# =========================================================================
+# Lab 23 · Part 5 — THE ONE OBJECT THIS COURSE CREATES IN kube-system.
+#
+# It is in its own file so that applying it is a deliberate act, not something
+# that happens by accident inside a larger bundle.
+#
+# WHAT IT DOES
+# ------------
+# An extension API server (metrics-server) must authenticate requests that
+# arrive from the kube-apiserver. To do that it needs the requestheader client
+# CA and the allowed header names, which the control plane publishes in the
+# ConfigMap `extension-apiserver-authentication` in namespace kube-system.
+# The built-in Role `extension-apiserver-authentication-reader` (also in
+# kube-system) grants read access to exactly that one ConfigMap.
+#
+# This file creates a RoleBinding from that EXISTING built-in Role to this
+# lab's ServiceAccount.
+#
+# WHAT IT DOES NOT DO
+# -------------------
+# It does not modify any existing kube-system object. It does not create,
+# patch, scale or delete any control-plane workload. It grants read access to
+# ONE ConfigMap. Nothing in this course ever writes to kube-system beyond this
+# single additive RoleBinding.
+#
+# IF YOUR POLICY FORBIDS THIS
+# ---------------------------
+# Skip it, and skip Part 5. Without it metrics-server starts but its /readyz
+# probe fails and the Pod never becomes Ready; `kubectl top` continues to
+# report "Metrics API not available". Parts 1-4 are unaffected.
+#
+# TO REMOVE IT LATER (exact name, no wildcards):
+#   kubectl delete rolebinding kcna-lab23-metrics-server-auth-reader \
+#     -n kube-system
+# =========================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kcna-lab23-metrics-server-auth-reader
+  namespace: kube-system
+  labels:
+    k8s-app: metrics-server
+    kcna.tertiaryinfotech.com/lab: lab-23
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+  - kind: ServiceAccount
+    name: metrics-server
+    namespace: kcna-lab23

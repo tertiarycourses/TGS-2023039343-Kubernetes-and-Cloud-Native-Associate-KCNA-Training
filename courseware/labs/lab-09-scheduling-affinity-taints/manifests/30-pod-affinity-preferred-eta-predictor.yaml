@@ -1,0 +1,62 @@
+# Vessel ETA predictor - PREFERRED node affinity plus a hard floor.
+#
+# required...  : must be a linux node (always true here) -> the Pod is always
+#                schedulable
+# preferred... : two soft wishes, scored and summed by the scheduler
+#                  weight 80  mfs.io/zone=sg-tuas       (NOT present in this
+#                             single-node cluster -> contributes 0)
+#                  weight 20  mfs.io/disk in (ssd,nvme) (present -> contributes)
+#
+# The whole point: an unsatisfied PREFERRED term costs the node score, it never
+# blocks scheduling. Compare with 40-pod-affinity-unsatisfiable.yaml.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eta-predictor
+  namespace: kcna-lab09
+  labels:
+    app: eta-predictor
+    tier: analytics
+    placement: preferred-affinity
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                  - linux
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: mfs.io/zone
+                operator: In
+                values:
+                  - sg-tuas
+        - weight: 20
+          preference:
+            matchExpressions:
+              - key: mfs.io/disk
+                operator: In
+                values:
+                  - ssd
+                  - nvme
+  containers:
+    - name: predictor
+      image: registry.k8s.io/pause:3.9
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  terminationGracePeriodSeconds: 3

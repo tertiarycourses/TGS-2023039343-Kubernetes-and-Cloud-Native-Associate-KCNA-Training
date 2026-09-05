@@ -1,0 +1,123 @@
+# Lab 24 · Part 4 — one small Prometheus, scraping two static targets.
+#
+# SCOPE — READ THIS.
+# This is deliberately NOT kube-prometheus-stack. There is no Operator, no
+# ServiceMonitor CRD, no Alertmanager, no Grafana, no kubernetes_sd_configs
+# service discovery and no node-exporter. Those are the right choices for a
+# production cluster and entirely the wrong ones for a 45-minute lab, because
+# they hide the mechanism behind CRDs.
+#
+# What you get instead is the smallest thing that is still genuinely
+# Prometheus: one Pod, one config file you wrote, two targets you can name,
+# and a local TSDB you query with real PromQL.
+#
+# RESOURCES — why these are larger than the lab default of 50m/64Mi.
+# Prometheus is a time-series DATABASE. It keeps an in-memory head block, a
+# write-ahead log and per-series memory that scales with active series count.
+# 64Mi is not a small allocation for it, it is an OOMKill. Retention is capped
+# at 2h and only two targets are scraped, so 512Mi is ample headroom. Sizing a
+# TSDB by series count rather than by habit is itself the lesson.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: kcna-lab24
+  labels:
+    app: prometheus
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: prometheus
+  strategy:
+    # A TSDB with a local volume must not have two writers on the same data.
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        # The upstream image runs as uid/gid 65534 (nobody). fsGroup makes the
+        # emptyDir group-writable by that gid so the TSDB can be created.
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+        - name: tsdb
+          # emptyDir: this Prometheus is DISPOSABLE. Delete the Pod and every
+          # sample is gone. Production uses a PersistentVolumeClaim, or ships
+          # to long-term storage such as Thanos or Cortex.
+          emptyDir: {}
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.54.1
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=2h
+            # Enables POST /-/reload so Step 6 can hot-swap the scrape config
+            # without restarting the process and losing the TSDB.
+            - --web.enable-lifecycle
+            - --log.level=info
+          ports:
+            - name: web
+              containerPort: 9090
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: tsdb
+              mountPath: /prometheus
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: web
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: web
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: kcna-lab24
+  labels:
+    app: prometheus
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: prometheus
+  ports:
+    - name: web
+      port: 9090
+      targetPort: web
+      protocol: TCP

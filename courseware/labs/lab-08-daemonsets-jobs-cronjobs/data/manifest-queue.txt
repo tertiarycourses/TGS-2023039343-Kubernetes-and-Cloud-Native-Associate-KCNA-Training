@@ -1,0 +1,6 @@
+MFS-MAN-24001 berth=B01 containers=418 consignee=SEMBAWANG-COLD-CHAIN
+MFS-MAN-24002 berth=B03 containers=602 consignee=JURONG-PETROCHEM
+MFS-MAN-24003 berth=B05 containers=275 consignee=CHANGI-AIRFREIGHT-LINK
+MFS-MAN-24004 berth=B02 containers=511 consignee=TUAS-MEGA-RETAIL
+MFS-MAN-24005 berth=B06 containers=733 consignee=PASIR-PANJANG-AUTOS
+MFS-MAN-24006 berth=B08 containers=344 consignee=KEPPEL-MARINE-PARTS

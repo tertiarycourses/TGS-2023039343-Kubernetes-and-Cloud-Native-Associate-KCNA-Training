@@ -1,0 +1,57 @@
+# Lab 20 / Step 10 — the TrackLane etcd backup policy as a cluster object.
+#
+# This is a documentation artefact, not an executable. It is the "technical
+# blueprint" deliverable for this lab: the control decisions a platform team
+# must make about etcd backup, written down and version-controlled next to the
+# cluster they apply to.
+#
+# NOTHING in this ConfigMap is executed by anything. It is mounted and read.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etcd-backup-policy
+  namespace: kcna-lab20
+  labels:
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "20"
+data:
+  policy.yaml: |
+    # Kallang Freight — TrackLane etcd backup policy
+    # Owner: Platform Engineering. Review: quarterly.
+    scope:
+      cluster: tracklane-prod-sg1
+      control_plane: kubeadm, 3 stacked etcd members
+    objectives:
+      rpo_minutes: 30          # max acceptable data loss
+      rto_minutes: 60          # decision -> /readyz ok
+    snapshot:
+      interval: "*/30 * * * *"
+      command: "etcdctl snapshot save"        # talks to a running server
+      verify_command: "etcdutl snapshot status"  # offline, reads the file
+      verify_every_snapshot: true
+    retention:
+      hourly: 48
+      daily: 14
+      monthly: 12
+    storage:
+      on_node_copy: "/var/lib/etcd-backup"    # convenience only, NOT a backup
+      offsite_required: true                  # object storage, different failure domain
+      encrypted_at_rest: true
+      key_custody: "outside the cluster; never in the same blast radius"
+    also_back_up:
+      - /etc/kubernetes/pki                   # certificates; restore needs them
+      - EncryptionConfiguration key material  # or restored Secrets are unreadable
+      - PersistentVolume contents             # etcd stores PV objects, not PV bytes
+    drills:
+      restore_drill: quarterly
+      drill_target: a rebuilt throwaway cluster, never production
+      timed_against: rto_minutes
+    safety:
+      restore_is_a_one_way_door: true
+      requires_oncall_lead_signoff: true
+      never_restore_one_member_of_a_multi_member_cluster_alone: true
+  README.txt: |
+    This ConfigMap is READ-ONLY REFERENCE MATERIAL for Lab 20.
+    It contains no scripts and is not consumed by any controller.
+    The destructive restore procedure lives in the runbook ConfigMap and is
+    marked DO NOT RUN. In this course you read it; you do not execute it.

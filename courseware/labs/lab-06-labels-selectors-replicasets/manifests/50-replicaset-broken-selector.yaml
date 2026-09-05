@@ -1,0 +1,49 @@
+# DELIBERATELY BROKEN — used in the Failure injection section.
+# The selector requires tier=edge but the Pod template labels say
+# tier=internal. The ReplicaSet could therefore never own the Pods it
+# creates, so the API server rejects the object outright.
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: cargo-manifest-broken
+  namespace: kcna-lab06
+  labels:
+    app: cargo-manifest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cargo-manifest
+      tier: edge
+  template:
+    metadata:
+      labels:
+        app: cargo-manifest
+        tier: internal
+        env: staging
+        release: r24
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - CHOWN
+                - SETGID
+                - SETUID
+                - NET_BIND_SERVICE
+      terminationGracePeriodSeconds: 5

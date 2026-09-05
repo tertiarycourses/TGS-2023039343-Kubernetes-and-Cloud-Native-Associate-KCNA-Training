@@ -1,0 +1,104 @@
+# Three Pods that demonstrate how spec.containers[].command and
+# spec.containers[].args map onto the image's ENTRYPOINT and CMD.
+#
+# The nginx image is used because its ENTRYPOINT and CMD are both non-trivial
+# and stable:
+#   ENTRYPOINT ["/docker-entrypoint.sh"]
+#   CMD        ["nginx", "-g", "daemon off;"]
+# The entrypoint script prints identifiable banner lines, so you can SEE
+# whether it ran.
+---
+# A) Neither command nor args -> image ENTRYPOINT + image CMD.
+#    /docker-entrypoint.sh nginx -g "daemon off;"  -> nginx runs in foreground.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: em-a-image-defaults
+  namespace: kcna-lab03
+  labels:
+    kcna.tertiaryinfotech.com/lab: lab-03
+    kcna.tertiaryinfotech.com/case: a-image-defaults
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: nginx:1.27-alpine
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+---
+# B) args ONLY -> image ENTRYPOINT is kept, image CMD is replaced.
+#    /docker-entrypoint.sh nginx -v   -> entrypoint banner, then a version line.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: em-b-args-only
+  namespace: kcna-lab03
+  labels:
+    kcna.tertiaryinfotech.com/lab: lab-03
+    kcna.tertiaryinfotech.com/case: b-args-only
+spec:
+  restartPolicy: Never
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: nginx:1.27-alpine
+      imagePullPolicy: IfNotPresent
+      args: ["nginx", "-v"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+---
+# C) command (+ args) -> image ENTRYPOINT **and** image CMD are both replaced.
+#    The entrypoint script never runs, so its banner lines never appear.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: em-c-command-override
+  namespace: kcna-lab03
+  labels:
+    kcna.tertiaryinfotech.com/lab: lab-03
+    kcna.tertiaryinfotech.com/case: c-command-override
+spec:
+  restartPolicy: Never
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: nginx:1.27-alpine
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "case C: image ENTRYPOINT was replaced by spec.command"
+          echo "case C: pid 1 is now: $(cat /proc/1/cmdline | tr '\0' ' ')"
+          echo "case C: no /docker-entrypoint.sh banner above == proof"
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false

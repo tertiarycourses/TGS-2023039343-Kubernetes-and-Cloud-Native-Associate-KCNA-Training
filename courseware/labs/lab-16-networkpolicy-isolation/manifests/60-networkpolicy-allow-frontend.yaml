@@ -1,0 +1,55 @@
+# THE SELECTIVE ALLOW. Two policies, one per direction, because ingress on the
+# server and egress on the client are separate decisions and on an enforcing
+# CNI BOTH must permit the flow.
+#
+# Policy A — ingress to payments-api from role=frontend only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-payments
+  namespace: kcna-lab16
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  # WHICH Pods this policy protects.
+  podSelector:
+    matchLabels:
+      app: payments-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # WHO may connect. A bare podSelector means "in THIS namespace".
+        - podSelector:
+            matchLabels:
+              role: frontend
+      ports:
+        # The POD port (containerPort 8080), NOT the Service port 80.
+        - protocol: TCP
+          port: 8080
+---
+# Policy B — egress from role=frontend to payments-api only.
+# Without this, default-deny-all still blocks the client's outbound
+# connection on an enforcing CNI, and the request fails even though the
+# server-side ingress rule allows it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-egress-to-payments
+  namespace: kcna-lab16
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  podSelector:
+    matchLabels:
+      role: frontend
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: payments-api
+      ports:
+        - protocol: TCP
+          port: 8080

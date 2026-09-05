@@ -1,0 +1,47 @@
+# Lab 21 / Kustomize BASE.
+#
+# A base is: a list of plain resources + generators + shared metadata. It is
+# not environment-specific and it is never applied directly in this lab — the
+# overlays consume it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+# Applied to every resource's metadata.labels. `includeSelectors: false` is
+# essential: these are descriptive labels, and writing them into an existing
+# Deployment's spec.selector would be an immutable-field error on the next
+# apply. Compare the overlays, which deliberately set includeSelectors: true
+# for the instance label.
+labels:
+  - pairs:
+      app.kubernetes.io/managed-by: kustomize
+      kcna.tertiaryinfotech.com/lab: "21"
+    includeSelectors: false
+
+commonAnnotations:
+  tracklane.kallangfreight.sg/owner: platform-engineering
+
+# GENERATORS. A generated ConfigMap gets a content-hash suffix
+# (tracklane-config-9t4hk2mf7d), and Kustomize rewrites every reference to it.
+# Change a value, the hash changes, the Deployment's Pod template changes, and
+# the workload rolls. This is Kustomize's built-in answer to the same problem
+# Helm solves with a checksum/config annotation.
+configMapGenerator:
+  - name: tracklane-config
+    literals:
+      - LOG_LEVEL=info
+      - FEATURE_LANE_ETA=false
+      - CACHE_TTL_SECONDS=60
+      - ENVIRONMENT=base
+  - name: tracklane-lanes
+    files:
+      - shipping-lanes.csv=files/shipping-lanes.csv
+
+generatorOptions:
+  # Leave hash suffixes ON. Disabling them (disableNameSuffixHash: true) is a
+  # common shortcut that silently reintroduces the "config changed but nothing
+  # restarted" bug.
+  disableNameSuffixHash: false

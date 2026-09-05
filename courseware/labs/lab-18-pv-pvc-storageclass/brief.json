@@ -1,0 +1,14 @@
+{
+  "goal": "Give the TrackLane customs archive storage that outlives the Pod that wrote it — first by hand-binding a static PersistentVolume, then by letting a StorageClass provision one dynamically — and diagnose a Pending claim from describe events alone.",
+  "produces": [
+    "A statically provisioned PV bound to a namespaced PVC, seeded with 30 archive rows by one Pod and read back by a second Pod after the writer was deleted.",
+    "A dynamically provisioned volume from kind's default `standard` StorageClass, observed transitioning from Pending (WaitForFirstConsumer) to Bound the moment a consumer is scheduled.",
+    "A diagnosed Pending PVC whose root cause is a StorageClass name typo, evidenced by a ProvisioningFailed event."
+  ],
+  "concepts": [
+    "PV/PVC binding: capacity, access modes, volumeMode, storageClassName and claimRef pre-binding",
+    "Reclaim policies Retain vs Delete, and the Released phase",
+    "StorageClass, dynamic provisioning and volumeBindingMode WaitForFirstConsumer",
+    "CSI as the out-of-tree plugin interface between Kubernetes and storage vendors"
+  ]
+}

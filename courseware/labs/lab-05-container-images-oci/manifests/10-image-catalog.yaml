@@ -1,0 +1,57 @@
+# The reference workload for this lab: a TAG-pinned Pod that serves Meridian's
+# image inventory. You will read its resolved imageID in Step 5 and use that
+# digest to repair the deliberately stale pin in 20-digest-pinned.yaml.
+#
+# Requires ConfigMap `image-catalog`, built in Step 2 from
+#   data/image-inventory.csv  and  data/reference-forms.tsv
+apiVersion: v1
+kind: Pod
+metadata:
+  name: image-catalog
+  namespace: kcna-lab05
+  labels:
+    app.kubernetes.io/name: image-catalog
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-05
+    kcna.tertiaryinfotech.com/pin: tag
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 10
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: web
+      # TAG pin. Readable, but the tag is a mutable pointer: the publisher can
+      # move nginx:1.27-alpine to a new digest at any time.
+      image: nginx:1.27-alpine
+      # With an explicit, non-latest tag the kubelet default would already be
+      # IfNotPresent. It is stated here so the policy is auditable.
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+      volumeMounts:
+        - name: catalog
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      readinessProbe:
+        httpGet:
+          path: /image-inventory.csv
+          port: http
+        initialDelaySeconds: 2
+        periodSeconds: 5
+      securityContext:
+        allowPrivilegeEscalation: false
+  volumes:
+    - name: catalog
+      configMap:
+        name: image-catalog

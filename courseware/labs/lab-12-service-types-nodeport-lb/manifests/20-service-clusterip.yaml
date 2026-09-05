@@ -1,0 +1,20 @@
+# TYPE 1 of 4 — ClusterIP (the default).
+# A virtual IP reachable only from inside the cluster. Every other Service type
+# is built on top of this one.
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-edge-clusterip
+  namespace: kcna-lab12
+  labels:
+    app: booking-edge
+    kcna.tertiaryinfotech.com/service-type: clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: booking-edge
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5678
+      protocol: TCP

@@ -1,0 +1,14 @@
+{
+  "goal": "Give the Meridian Freight quote-api a stable cluster identity by putting a ClusterIP Service in front of it, then prove what that name actually points at by reading the EndpointSlice the selector produced - and break it with a one-character selector typo.",
+  "produces": [
+    "A quote-api Deployment (3 replicas) serving data/quote-api-index.html from a ConfigMap on named container port http/8080",
+    "A ClusterIP Service mapping port 80 to the named targetPort http, with an EndpointSlice holding exactly the three Ready Pod IPs",
+    "A dns-client Pod that resolves every name form in data/dns-fixtures.csv, including the cross-namespace case that correctly fails"
+  ],
+  "concepts": [
+    "A Service stores a selector, not a Pod list; the endpoints controller derives the EndpointSlice from it",
+    "port vs targetPort vs a named container port - and why only Ready Pods get conditions.ready true",
+    "Cluster DNS: <svc>.<ns>.svc.cluster.local, the Pod search path and ndots:5",
+    "Empty-endpoint signature: DNS resolves but TCP is refused - always re-run the selector as a label query"
+  ]
+}

@@ -1,0 +1,45 @@
+# kind cluster configuration used by README Appendix A.
+# This is a kind config (kind.x-k8s.io/v1alpha4), NOT a Kubernetes API object,
+# which is why it lives in data/ rather than manifests/.
+#
+#   kind create cluster --name kcna-ingress --config data/kind-cluster-ingress.yaml
+#
+# OPTIONAL AND NOT REQUIRED BY THIS LAB. README Appendix C runs a real ingress
+# controller on your EXISTING training cluster using `kubectl port-forward`, so
+# you do NOT need this second cluster in order to get live routing. Use this
+# file only if you specifically want the controller published on the host's
+# real ports 80/443.
+#
+# Two settings, BOTH of which can only be applied at cluster-creation time:
+#
+#   1. node-labels: ingress-ready=true
+#      Some controller manifests packaged for kind pin their Pod to a node
+#      carrying this label via a nodeSelector, so the controller lands where the
+#      ports are published.
+#   2. extraPortMappings for 80 and 443
+#      Publishes the node container's HTTP/HTTPS ports on your laptop, so
+#      http://localhost/ reaches the controller on the unprefixed port.
+#
+# What extraPortMappings is NOT: it is not the only way to reach a workload from
+# the host. `kubectl port-forward` works on any already-running cluster, needs
+# no recreation, and is what Appendix C uses. The only thing you give up is the
+# cosmetic convenience of port 80 - you use 127.0.0.1:18080 instead.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        listenAddress: "127.0.0.1"
+        protocol: TCP

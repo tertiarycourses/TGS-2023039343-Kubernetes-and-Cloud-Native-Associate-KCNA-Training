@@ -1,0 +1,29 @@
+# Lab 18 / Step 4 — the PersistentVolumeClaim that binds to the static PV.
+#
+# A PVC is a NAMESPACED request. It says what the workload needs; it does not
+# say where the bytes live. The PersistentVolume controller matches it to a
+# PV whose class, access modes, volumeMode and capacity all satisfy it.
+#
+# Note the deliberate asymmetry: this claim asks for 512Mi but the PV offers
+# 1Gi. Binding is "at least as large as requested", never exact-match, and
+# the Pod gets the WHOLE PV. Over-claiming wastes real money in a cloud.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archive-claim
+  namespace: kcna-lab18
+  labels:
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "18"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  # Must match the PV's class exactly. An empty string here would mean
+  # "explicitly no class"; omitting the field entirely would fall through to
+  # the DEFAULT StorageClass (on kind, `standard`) and dynamically provision
+  # a brand new volume instead of binding to ours.
+  storageClassName: tracklane-manual
+  resources:
+    requests:
+      storage: 512Mi

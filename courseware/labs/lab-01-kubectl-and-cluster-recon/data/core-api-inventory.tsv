@@ -1,0 +1,28 @@
+# Meridian Freight Pte Ltd — expected CORE (legacy "") API group inventory.
+# Synthetic baseline for KCNA Lab 01. Compared against live output of:
+#   kubectl api-resources --api-group='' --no-headers
+# Only long-lived, stable core resources are listed, so the baseline survives
+# minor-version upgrades. Resources deprecated for removal (componentstatuses,
+# v1 Endpoints) are intentionally EXCLUDED — see the note at the bottom.
+#
+# name<TAB>namespaced<TAB>kind
+configmaps	true	ConfigMap
+events	true	Event
+limitranges	true	LimitRange
+namespaces	false	Namespace
+nodes	false	Node
+persistentvolumeclaims	true	PersistentVolumeClaim
+persistentvolumes	false	PersistentVolume
+pods	true	Pod
+podtemplates	true	PodTemplate
+replicationcontrollers	true	ReplicationController
+resourcequotas	true	ResourceQuota
+secrets	true	Secret
+serviceaccounts	true	ServiceAccount
+services	true	Service
+#
+# NOT in this baseline, on purpose:
+#   endpoints          v1 Endpoints was deprecated in Kubernetes v1.33.
+#                      Use discovery.k8s.io/v1 EndpointSlice instead.
+#   componentstatuses  deprecated since v1.19; may be absent on new clusters.
+#   bindings           write-only helper resource, not listable.

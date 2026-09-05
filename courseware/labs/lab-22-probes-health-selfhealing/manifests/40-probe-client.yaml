@@ -1,0 +1,28 @@
+# Lab 22 · Part 3 helper — an in-cluster client so you can curl the Service
+# from inside the cluster without exposing anything outside it.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: probe-client
+  namespace: kcna-lab22
+  labels:
+    app: probe-client
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 5
+  containers:
+    - name: shell
+      image: alpine:3.20
+      command: ["/bin/sh", "-c", "sleep 3600"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

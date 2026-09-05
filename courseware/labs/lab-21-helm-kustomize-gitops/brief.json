@@ -1,0 +1,14 @@
+{
+  "goal": "Replace hand-maintained TrackLane YAML with two real packaging approaches — a Helm chart rendered from environment values files, and a Kustomize base with dev and prod overlays — then read a GitOps Application manifest field by field to see how a controller turns Git into the cluster's desired state.",
+  "produces": [
+    "A minimal but complete Helm chart (Chart.yaml, values.yaml, _helpers.tpl, templates, NOTES.txt) that renders different dev and prod output from two values files, including a conditionally created PodDisruptionBudget.",
+    "A Kustomize base plus dev and prod overlays that render to stdout with kubectl kustomize alone, differing in replicas, resources, config literals, image registry, probe timing and dataset size.",
+    "An annotated Argo CD Application and the equivalent Flux GitRepository/Kustomization pair, read field by field, with the reconciliation model (prune, selfHeal, drift) explained against them."
+  ],
+  "concepts": [
+    "Helm chart anatomy: Chart.yaml versus appVersion, values precedence, named templates, the checksum/config annotation",
+    "Kustomize base and overlay: strategic-merge versus JSON 6902 patches, transformers, generator hashes",
+    "Templating versus patching — when each is the right tool, and the cost of each",
+    "GitOps: desired state in Git, a controller reconciling drift, prune and self-heal"
+  ]
+}

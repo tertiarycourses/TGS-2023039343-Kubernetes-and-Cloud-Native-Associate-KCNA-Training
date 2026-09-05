@@ -1,0 +1,116 @@
+# PATTERN 2 — ADAPTER
+#
+#   app      emits Meridian's proprietary key=value access log
+#   adapter  reads that log and re-publishes it in a STANDARD shape
+#            (Prometheus text exposition format) that the monitoring platform
+#            already understands
+#
+# The application is not modified and does not know the adapter exists.
+# Contrast with the sidecar, which ADDS a capability; the adapter CHANGES the
+# shape of an existing output so a standard consumer can read it.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: depot-adapter
+  namespace: kcna-lab04
+  labels:
+    app.kubernetes.io/name: depot-api
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-04
+    kcna.tertiaryinfotech.com/pattern: adapter
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    # ---------------------------------------------------------------- app ---
+    - name: app
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          cp /seed/access-seed.log /var/log/depot/access.log
+          echo "[app] proprietary key=value log started"
+          while true; do
+            for code in 200 200 200 201 200 404 200 503; do
+              echo "`date -u +%FT%TZ` depot=MF-SIN-02 path=/api/bookings status=${code} bytes=812 latency_ms=44" \
+                >> /var/log/depot/access.log
+              sleep 2
+            done
+          done
+      volumeMounts:
+        - name: varlog
+          mountPath: /var/log/depot
+        - name: seed
+          mountPath: /seed
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+    # ------------------------------------------------------------ adapter ---
+    - name: adapter
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          LOG=/var/log/depot/access.log
+          while [ ! -f "${LOG}" ]; do sleep 1; done
+          echo "[adapter] translating key=value log -> Prometheus text exposition"
+          while true; do
+            sleep 15
+            TOTAL=`grep -c 'status=' "${LOG}"`
+            OK=`grep -c 'status=200' "${LOG}"`
+            CREATED=`grep -c 'status=201' "${LOG}"`
+            NOTFOUND=`grep -c 'status=404' "${LOG}"`
+            UNAVAIL=`grep -c 'status=503' "${LOG}"`
+            echo "# HELP depot_http_requests_total Depot Portal requests by status code."
+            echo "# TYPE depot_http_requests_total counter"
+            echo "depot_http_requests_total{depot=\"MF-SIN-02\",code=\"200\"} ${OK}"
+            echo "depot_http_requests_total{depot=\"MF-SIN-02\",code=\"201\"} ${CREATED}"
+            echo "depot_http_requests_total{depot=\"MF-SIN-02\",code=\"404\"} ${NOTFOUND}"
+            echo "depot_http_requests_total{depot=\"MF-SIN-02\",code=\"503\"} ${UNAVAIL}"
+            echo "# HELP depot_http_requests_observed_total All parsed log rows."
+            echo "# TYPE depot_http_requests_observed_total counter"
+            echo "depot_http_requests_observed_total{depot=\"MF-SIN-02\"} ${TOTAL}"
+          done
+      volumeMounts:
+        - name: varlog
+          mountPath: /var/log/depot
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+  volumes:
+    - name: varlog
+      emptyDir:
+        sizeLimit: 16Mi
+    - name: seed
+      configMap:
+        name: access-seed
+        defaultMode: 0444

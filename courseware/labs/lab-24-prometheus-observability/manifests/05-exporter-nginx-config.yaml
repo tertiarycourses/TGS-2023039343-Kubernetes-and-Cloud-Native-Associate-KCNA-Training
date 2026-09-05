@@ -1,0 +1,43 @@
+# Lab 24 · the exporter's HTTP surface.
+#
+# WHY THIS CONFIG EXISTS — the Content-Type point.
+# The Prometheus text exposition format is served as
+#     text/plain; version=0.0.4; charset=utf-8
+# nginx decides a response's Content-Type from the file extension. Our metrics
+# document is a file called `metrics` with NO extension, so nginx would fall
+# back to the stock `default_type application/octet-stream` and a browser would
+# offer to download it instead of showing it.
+#
+# Setting default_type explicitly here makes the exporter behave like a real
+# one, and lets you SEE the declared content type with `wget -S` in Step 3.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: exporter-nginx-config
+  namespace: kcna-lab24
+  labels:
+    app: depot-metrics-sim
+    app.kubernetes.io/part-of: depot-portal
+data:
+  metrics.conf: |
+    server {
+        listen 9100;
+        server_name depot-metrics-sim;
+
+        # The exporter endpoint. Exact-match location, aliased to the single
+        # file that the generator container rewrites every 10 seconds.
+        location = /metrics {
+            default_type "text/plain; version=0.0.4; charset=utf-8";
+            alias /usr/share/nginx/html/metrics;
+        }
+
+        # A trivial liveness surface, so probing does not disturb /metrics.
+        location = /healthz {
+            default_type "text/plain";
+            return 200 "ok\n";
+        }
+
+        location / {
+            return 404 "not found\n";
+        }
+    }

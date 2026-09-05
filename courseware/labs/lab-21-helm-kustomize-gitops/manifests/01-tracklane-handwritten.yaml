@@ -1,0 +1,118 @@
+# Lab 21 / Step 2 — the BEFORE state: hand-maintained YAML.
+#
+# This is how the TrackLane web tier is deployed today. It works. Read it and
+# then ask the two questions that motivate the rest of the lab:
+#
+#   1. How do you produce a dev version of this with 1 replica, debug logging
+#      and a trimmed lane list — WITHOUT copy-pasting the whole file?
+#   2. When someone copies it and edits three of the four places the image tag
+#      appears, how does anyone find out?
+#
+# Copy-paste-and-edit is the baseline that Helm and Kustomize replace. Deploy
+# it, look at it, and keep it on screen while you read the chart and the base.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tracklane-handwritten-config
+  namespace: kcna-lab21
+  labels:
+    app.kubernetes.io/name: tracklane
+    app.kubernetes.io/instance: tracklane-handwritten
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "21"
+data:
+  LOG_LEVEL: "info"
+  FEATURE_LANE_ETA: "false"
+  CACHE_TTL_SECONDS: "60"
+  ENVIRONMENT: "handwritten"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracklane-handwritten
+  namespace: kcna-lab21
+  labels:
+    app.kubernetes.io/name: tracklane
+    app.kubernetes.io/instance: tracklane-handwritten
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "21"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: tracklane
+    app.kubernetes.io/instance: tracklane-handwritten
+    app.kubernetes.io/component: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracklane-handwritten
+  namespace: kcna-lab21
+  labels:
+    app.kubernetes.io/name: tracklane
+    app.kubernetes.io/instance: tracklane-handwritten
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "21"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tracklane
+      app.kubernetes.io/instance: tracklane-handwritten
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tracklane
+        app.kubernetes.io/instance: tracklane-handwritten
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: tracklane
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: lanes
+          configMap:
+            name: tracklane-handwritten-lanes
+            defaultMode: 0444
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: tracklane-handwritten-config
+          volumeMounts:
+            - name: lanes
+              mountPath: /usr/share/nginx/html/lanes
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false

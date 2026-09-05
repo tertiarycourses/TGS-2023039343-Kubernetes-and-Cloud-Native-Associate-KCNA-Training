@@ -1,0 +1,156 @@
+# Three tiny backends so the Ingress has something distinguishable to route to:
+#   catalog        - nginx serving data/catalog-index.html on 8080
+#   checkout       - http-echo returning a fixed line on 5678
+#   route-fallback - http-echo used as the Ingress defaultBackend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+  namespace: kcna-lab13
+  labels:
+    app: catalog
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+        app.kubernetes.io/part-of: meridian-freight
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+      volumes:
+        - name: content
+          configMap:
+            name: catalog-content
+        - name: nginx-conf
+          configMap:
+            name: catalog-nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout
+  namespace: kcna-lab13
+  labels:
+    app: checkout
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout
+  template:
+    metadata:
+      labels:
+        app: checkout
+        app.kubernetes.io/part-of: meridian-freight
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: http-echo
+          image: hashicorp/http-echo:1.0
+          args:
+            - "-listen=:5678"
+            - "-text=checkout status OK :: kcna-lab13"
+          ports:
+            - name: http
+              containerPort: 5678
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: route-fallback
+  namespace: kcna-lab13
+  labels:
+    app: route-fallback
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: route-fallback
+  template:
+    metadata:
+      labels:
+        app: route-fallback
+        app.kubernetes.io/part-of: meridian-freight
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: http-echo
+          image: hashicorp/http-echo:1.0
+          args:
+            - "-listen=:5678"
+            - "-text=no ingress rule matched - default backend :: kcna-lab13"
+          ports:
+            - name: http
+              containerPort: 5678
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5

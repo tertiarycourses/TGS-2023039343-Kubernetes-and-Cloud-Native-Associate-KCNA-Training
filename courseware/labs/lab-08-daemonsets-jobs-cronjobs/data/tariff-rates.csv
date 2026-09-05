@@ -1,0 +1,9 @@
+lane_code,lane_name,rate_sgd,status
+SG-CN,Singapore to Shanghai,412.50,active
+SG-MY,Singapore to Port Klang,118.00,active
+SG-ID,Singapore to Tanjung Priok,164.25,review
+SG-IN,Singapore to Nhava Sheva,528.75,active
+SG-AE,Singapore to Jebel Ali,690.00,review
+SG-NL,Singapore to Rotterdam,1240.00,active
+SG-US,Singapore to Long Beach,1580.50,active
+SG-AU,Singapore to Melbourne,735.25,active

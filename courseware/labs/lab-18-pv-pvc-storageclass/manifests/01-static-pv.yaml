@@ -1,0 +1,58 @@
+# Lab 18 / Step 3 — a STATICALLY provisioned PersistentVolume.
+#
+# ============================== HONESTY NOTE ==============================
+# hostPath is used here as a TEACHING DEVICE ONLY. It is the one backing
+# store guaranteed to exist on any single-node kind cluster with no cloud
+# account, no CSI driver and no network storage. It is NOT suitable for
+# production for the reasons proven in Lab 17: the data is pinned to one
+# node, the scheduler is unaware of it, and it bypasses every quota and
+# access-control mechanism Kubernetes has.
+#
+# On kind, the "node" is a Docker container, so /tmp/tracklane-archive lives
+# INSIDE the kind node container — not on your laptop's /tmp. It disappears
+# when the kind cluster is deleted.
+#
+# In a real cluster this PV would be produced by a CSI driver
+# (ebs.csi.aws.com, disk.csi.azure.com, pd.csi.storage.gke.io, ceph-rbd,
+# csi.vsphere.vmware.com, ...) and you would almost never hand-write one.
+# ==========================================================================
+#
+# PersistentVolume is CLUSTER-SCOPED. It has no namespace. Read the fields:
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tracklane-archive-pv
+  labels:
+    kcna.tertiaryinfotech.com/course: tgs-2023039343
+    kcna.tertiaryinfotech.com/lab: "18"
+    tracklane.kallangfreight.sg/tier: gold
+spec:
+  # How much the administrator says this volume holds. Kubernetes does NOT
+  # enforce this for hostPath — it is metadata used for PVC matching.
+  capacity:
+    storage: 1Gi
+  # Filesystem (the default) vs Block. Block hands the raw device to the Pod.
+  volumeMode: Filesystem
+  accessModes:
+    # RWO = mountable read-write by Pods on ONE node at a time.
+    - ReadWriteOnce
+  # Retain: when the bound PVC is deleted, this PV moves to phase Released
+  # and KEEPS THE DATA. An administrator must reclaim it deliberately.
+  # The alternative, Delete, destroys the underlying storage asset.
+  persistentVolumeReclaimPolicy: Retain
+  # A class name that no provisioner owns. It exists purely so that a PVC
+  # asking for "tracklane-manual" can only ever match a PV an administrator
+  # created by hand. This is the standard static-provisioning idiom.
+  storageClassName: tracklane-manual
+  # Pre-binding: reserve this PV for exactly one PVC. Without claimRef, the
+  # first matching PVC in ANY namespace could take it.
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: archive-claim
+    namespace: kcna-lab18
+  hostPath:
+    path: /tmp/tracklane-archive
+    # DirectoryOrCreate so the kubelet creates the path on first mount.
+    # Compare with Lab 17, where `Directory` refused to create it.
+    type: DirectoryOrCreate

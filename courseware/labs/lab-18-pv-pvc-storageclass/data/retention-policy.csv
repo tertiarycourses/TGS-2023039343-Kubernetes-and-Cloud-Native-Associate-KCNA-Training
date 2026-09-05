@@ -1,0 +1,7 @@
+dataset,tier,access_mode,reclaim_policy,retention_days,storage_class,justification
+customs-manifest-archive,gold,ReadWriteOnce,Retain,2555,tracklane-manual,statutory 7-year customs retention; volume must survive claim deletion
+depot-ledger-state,gold,ReadWriteOnce,Retain,2555,tracklane-retain,per-replica ledger state; operator deletes volumes deliberately
+tracking-render-cache,bronze,ReadWriteOnce,Delete,1,standard,regenerable from source; cheapest possible lifecycle
+lane-etl-scratch,bronze,ReadWriteOnce,Delete,1,standard,intermediate ETL output; discarded after each run
+ops-report-snapshots,silver,ReadWriteOnce,Delete,90,standard,quarterly board reporting; regenerable but expensive
+partner-edi-inbox,silver,ReadWriteOnce,Retain,365,tracklane-retain,partner dispute window; must not vanish with a namespace delete

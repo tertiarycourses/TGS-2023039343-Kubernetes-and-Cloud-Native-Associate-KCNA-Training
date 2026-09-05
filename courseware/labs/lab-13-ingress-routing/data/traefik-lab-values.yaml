@@ -1,0 +1,104 @@
+# Helm values for the OPTIONAL ingress-controller path in README Appendix C.
+#
+# This is a Helm values file, NOT a Kubernetes API object, which is why it lives
+# in data/ rather than manifests/ (same reason as data/kind-cluster-ingress.yaml).
+#
+# Controller:   Traefik Proxy
+# Chart:        traefik 41.4.0   (repo https://traefik.github.io/charts)
+# App version:  v3.7.12          (image docker.io/traefik:v3.7.12)
+# Chart kubeVersion constraint: >=1.25.0-0
+# Install method follows the project's own documentation:
+#   https://doc.traefik.io/traefik/getting-started/kubernetes/
+#
+# Every value below is set deliberately. Read the comments — they are the
+# lesson. Anything not listed here keeps the chart default.
+
+# ---------------------------------------------------------------- controller --
+deployment:
+  kind: Deployment
+  # One replica is enough for a single-node training cluster.
+  replicas: 1
+
+# ------------------------------------------------------------- IngressClass --
+ingressClass:
+  # The controller advertises itself by creating an IngressClass. IngressClass
+  # is CLUSTER-SCOPED — it is the one cluster-scoped object this path creates
+  # besides RBAC. It cannot be namespaced; that is the API's design.
+  enabled: true
+  # NOT the cluster default. Two reasons:
+  #   1. It keeps this controller from silently claiming Ingress objects that
+  #      belong to other labs or other users of the cluster.
+  #   2. It preserves the README section 6.2 teaching point about a class-less
+  #      Ingress. (Read the note there: whether a class-less Ingress is claimed
+  #      is CONTROLLER-DEPENDENT, not a universal rule.)
+  isDefaultClass: false
+  # Name it exactly what manifests/40-ingress-shop.yaml already references, so
+  # the forward reference `ingressClassName: meridian-edge` resolves. The
+  # IngressClass .spec.controller is set by the chart to
+  # traefik.io/ingress-controller — that is Traefik's own identifier.
+  name: meridian-edge
+
+# ----------------------------------------------------------------- providers --
+providers:
+  kubernetesIngress:
+    # The ONLY provider this lab wants: plain networking.k8s.io/v1 Ingress.
+    enabled: true
+    # Watch this lab's namespace only. Least privilege in practice: Traefik
+    # will not read or route Ingress objects anywhere else in the cluster.
+    namespaces:
+      - kcna-lab13
+    # IMPORTANT for this lab's pathType teaching.
+    # Traefik's DEFAULT prefix matching is character-by-character, so /catalog
+    # would also match /catalogue. This option makes prefix matching comply
+    # with the Kubernetes Ingress specification: path-element-wise, so
+    # /catalog matches /catalog, /catalog/ and /catalog/bar but NOT /catalogue.
+    # Documented at
+    # https://doc.traefik.io/traefik/reference/install-configuration/providers/kubernetes/kubernetes-ingress/
+    # This is itself a demonstration of why "ImplementationSpecific" exists and
+    # why controller behaviour must be verified, not assumed.
+    strictPrefixMatching: true
+    publishedService:
+      # Leave the Ingress ADDRESS column BLANK on purpose.
+      # The controller's Service is a ClusterIP (below), so it has no external
+      # load-balancer address to copy into .status.loadBalancer.ingress[].
+      # Routing still works. That is the point: a blank ADDRESS is NOT proof
+      # that no controller is present.
+      enabled: false
+  # Traefik's own CRD provider (IngressRoute/Middleware/...) is not needed to
+  # teach networking.k8s.io/v1 Ingress. Disabling it means the install needs no
+  # traefik.io CRDs at all — pair this with `helm install --skip-crds`.
+  kubernetesCRD:
+    enabled: false
+  # Gateway API is a separate API family and out of scope for this lab.
+  kubernetesGateway:
+    enabled: false
+
+# ------------------------------------------------------------------- service --
+service:
+  enabled: true
+  spec:
+    # NOT LoadBalancer. A kind cluster has no cloud load-balancer provisioner,
+    # so a LoadBalancer Service would sit in <pending> forever. ClusterIP plus
+    # `kubectl port-forward` reaches the controller from the host WITHOUT
+    # recreating the cluster with kind extraPortMappings.
+    type: ClusterIP
+
+ports:
+  web:
+    expose:
+      default: true
+    exposedPort: 80
+  websecure:
+    expose:
+      default: true
+    exposedPort: 443
+
+# ---------------------------------------------------------------------- RBAC --
+rbac:
+  enabled: true
+  # MUST stay false. The chart's own documentation states that namespaced RBAC
+  # (Role/RoleBinding instead of ClusterRole/ClusterRoleBinding) cannot be used
+  # together with IngressClass, because IngressClass is a cluster-scoped
+  # resource the controller has to read. See README Appendix C for the exact
+  # rule list this grants and why each rule is required.
+  namespaced: false

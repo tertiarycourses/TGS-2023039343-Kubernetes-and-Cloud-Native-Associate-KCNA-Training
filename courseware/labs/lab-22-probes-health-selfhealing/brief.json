@@ -1,0 +1,14 @@
+{
+  "goal": "Configure liveness, readiness and startup probes on the Depot Portal workloads and prove that each one has a different consequence: restart, endpoint withdrawal, or a grace window for a slow boot.",
+  "produces": [
+    "A depot-portal Deployment whose readiness probe demonstrably adds and removes its Pod address from the Service EndpointSlice without ever restarting the container",
+    "A manifest-indexer Deployment that boots for 40 seconds and reaches Ready with zero restarts because a startupProbe grants it a 120-second budget",
+    "A completed probe-tuning worksheet recording each probe's failure budget, observed timing and consequence"
+  ],
+  "concepts": [
+    "Liveness restarts the container; readiness withdraws it from the Service; startup suspends both while the process boots",
+    "Failure budget arithmetic: initialDelaySeconds + (periodSeconds x failureThreshold)",
+    "EndpointSlice is the current API that kube-proxy consumes for Service backends",
+    "A liveness budget shorter than real startup time produces a permanent restart loop on a perfectly healthy application"
+  ]
+}

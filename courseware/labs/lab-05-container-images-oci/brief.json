@@ -1,0 +1,14 @@
+{
+  "goal": "Take apart what an image reference really means — registry, repository, tag, digest and OCI manifest — see how the kubelet hands it to a CRI runtime, and prove why a moved tag breaks reproducibility while a digest cannot.",
+  "produces": [
+    "An image-catalog Pod serving data/image-inventory.csv and data/reference-forms.tsv, with its resolved status.imageID captured",
+    "A digest-pinned Pod repaired from a stale sha256 reference to the digest this cluster actually resolved",
+    "An imagePullPolicy matrix showing Always, IfNotPresent and an ErrImageNeverPull for a Never-policy image"
+  ],
+  "concepts": [
+    "Image reference anatomy and the implicit docker.io/library/ + :latest defaults",
+    "OCI image spec: index -> manifest -> config + content-addressed layers",
+    "spec.image is what you asked for; status.imageID is what the runtime resolved",
+    "imagePullPolicy semantics and defaults; CRI is the kubelet-to-containerd boundary"
+  ]
+}

@@ -1,0 +1,11 @@
+service_name,app,tier,env,release,owner_team,replicas
+Container Tracking API,tracking-api,edge,staging,r24,mfs-platform,3
+Berth Status Service,berth-status,internal,staging,r24,mfs-platform,2
+Cargo Manifest Store,cargo-manifest,internal,staging,r24,mfs-data,2
+Customs Declaration Gateway,customs-gateway,edge,staging,r24,mfs-compliance,3
+Tariff Rate Cache,tariff-cache,internal,staging,r24,mfs-data,2
+Vessel ETA Predictor,vessel-eta,experimental,staging,r23,mfs-labs,1
+Yard Crane Telemetry,crane-telemetry,internal,staging,r24,mfs-ops,2
+Driver Mobile Backend,driver-backend,edge,staging,r24,mfs-platform,3
+Warehouse Slotting Engine,slotting-engine,internal,staging,r23,mfs-ops,2
+Partner Webhook Relay,webhook-relay,experimental,staging,r23,mfs-labs,1

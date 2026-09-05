@@ -1,0 +1,39 @@
+# A NAMESPACED Role. Every rule it contains applies only inside kcna-lab14.
+# Read-only: get, list and watch. No create, update, patch or delete anywhere.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: kcna-lab14
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+rules:
+  # apiGroups: [""] is the CORE group (v1). Pods, Services, ConfigMaps,
+  # Secrets, Nodes and Namespaces all live there.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # Subresources are addressed as <resource>/<subresource> and must be granted
+  # separately - "pods" alone does NOT include "pods/log".
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+# The RoleBinding is what actually grants anything. Role + RoleBinding are
+# always a pair; a Role on its own is inert.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ops-reader-can-read-pods
+  namespace: kcna-lab14
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+subjects:
+  - kind: ServiceAccount
+    name: ops-reader
+    namespace: kcna-lab14
+roleRef:
+  # roleRef is IMMUTABLE after creation - see README section 6.3.
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reader

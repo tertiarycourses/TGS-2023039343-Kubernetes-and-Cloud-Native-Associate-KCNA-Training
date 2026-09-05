@@ -1,0 +1,18 @@
+# Lab 20 — namespace isolation boundary.
+#
+# This lab INSPECTS the control plane but CREATES nothing outside kcna-lab20.
+# Everything you apply here is namespaced: a ServiceAccount, a Role, a
+# RoleBinding, two ConfigMaps, a Job and a Pod.
+#
+# The control-plane inspection you do in Steps 2-6 is read-only: `kubectl get`,
+# `kubectl describe`, `kubectl get --raw` on health endpoints, and reading
+# static Pod manifests. No control-plane object is created, patched or deleted.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab20
+  labels:
+    kubernetes.io/metadata.name: kcna-lab20
+    kcna.tertiaryinfotech.com/course: tgs-2023039343
+    kcna.tertiaryinfotech.com/lab: "20"
+    kcna.tertiaryinfotech.com/day: "4"

@@ -1,0 +1,15 @@
+# Meridian Freight Pte Ltd — Depot Portal cluster reconnaissance checklist
+# Synthetic dataset for KCNA Lab 01. Consumed as ConfigMap `recon-checklist`.
+check_id,area,question,kubectl_probe,evidence_expected
+RC-001,identity,Which cluster and user is my context bound to?,kubectl config view --minify,current-context and user name
+RC-002,version,Do client and server minor versions match?,kubectl version,clientVersion and serverVersion blocks
+RC-003,capacity,How many nodes are Ready and what is their role?,kubectl get nodes -o wide,STATUS Ready and ROLES column
+RC-004,api,Which API groups and versions does the server serve?,kubectl api-versions,list of group/version strings
+RC-005,api,Which resource kinds exist and are they namespaced?,kubectl api-resources,NAMESPACED and KIND columns
+RC-006,schema,What fields may a Pod spec legally contain?,kubectl explain pod.spec,field list with types
+RC-007,tenancy,Which namespaces already exist on this cluster?,kubectl get namespaces,default kube-system kube-public kube-node-lease
+RC-008,policy,Is this namespace bounded by a quota?,kubectl get resourcequota -n kcna-lab01,depot-recon-quota with used vs hard
+RC-009,policy,Are container defaults injected by a LimitRange?,kubectl get limitrange -n kcna-lab01,depot-recon-defaults
+RC-010,wire,What HTTP request does kubectl actually send?,kubectl get pods -n kcna-lab01 --v=6,GET https://.../api/v1/namespaces/kcna-lab01/pods 200 OK
+RC-011,state,What does the API server store for one object?,kubectl get pod recon-shell -n kcna-lab01 -o yaml,metadata.uid resourceVersion and status blocks
+RC-012,events,What has the control plane recently done here?,kubectl get events -n kcna-lab01 --sort-by=.lastTimestamp,Scheduled Pulled Created Started

@@ -1,0 +1,14 @@
+{
+  "goal": "Create the placement conditions yourself on a single-node kind cluster - label the node, taint it, untaint it - and prove how nodeSelector, required vs preferred nodeAffinity and tolerations decide where a Pod lands, including one Pod left Pending forever.",
+  "produces": [
+    "A node labelled from data/node-placement-policy.csv and temporarily tainted mfs.io/maintenance=window:NoSchedule",
+    "Four Pods placed by nodeSelector, required affinity, preferred affinity and a toleration",
+    "Two Pods stuck Pending with readable FailedScheduling events: one unsatisfiable affinity, one missing toleration"
+  ],
+  "concepts": [
+    "Scheduling is filter-then-score: hard constraints eliminate nodes, soft preferences only rank them",
+    "requiredDuringScheduling blocks placement; preferredDuringScheduling only lowers a node's score",
+    "Taints repel, tolerations permit - a toleration never attracts a Pod to a node",
+    "FailedScheduling events name the exact predicate that rejected each node"
+  ]
+}

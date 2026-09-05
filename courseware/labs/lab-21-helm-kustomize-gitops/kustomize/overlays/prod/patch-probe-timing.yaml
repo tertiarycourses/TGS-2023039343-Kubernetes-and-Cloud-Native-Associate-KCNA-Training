@@ -1,0 +1,23 @@
+# Lab 21 / prod overlay — JSON 6902 patch (RFC 6902 "JSON Patch").
+#
+# Kustomize infers the patch format from the file's shape: a YAML LIST of
+# {op, path, value} objects is a JSON 6902 patch; a YAML MAP with
+# apiVersion/kind is a strategic-merge patch.
+#
+# `path` is a JSON Pointer, so list elements are addressed BY INDEX
+# (/containers/0), not by name. That is the trade: 6902 can do things a
+# strategic merge cannot — `remove`, `replace` at an exact index, list
+# reordering — but it breaks silently if someone inserts a container above
+# index 0. Prefer strategic merge unless you need one of those operations.
+#
+# Production widens the readiness window: nodes are busier and a cold nginx
+# behind a loaded kubelet should not be marked unready on the first miss.
+- op: replace
+  path: /spec/template/spec/containers/0/readinessProbe/periodSeconds
+  value: 10
+- op: add
+  path: /spec/template/spec/containers/0/readinessProbe/failureThreshold
+  value: 3
+- op: add
+  path: /spec/template/spec/containers/0/readinessProbe/timeoutSeconds
+  value: 3

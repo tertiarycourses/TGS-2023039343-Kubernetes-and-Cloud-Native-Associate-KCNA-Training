@@ -1,0 +1,14 @@
+{
+  "goal": "Work a queue of four real incidents using a repeatable five-question triage method that identifies the failure phase before the cause, then inspect node and control-plane health strictly read-only.",
+  "produces": [
+    "Four diagnosed and repaired workloads: an image-pull typo, a CrashLoopBackOff exiting 127, a Pending Pod the scheduler refused, and a Service whose selector matched nothing",
+    "A completed triage worksheet recording, per ticket, the first failing question, the decisive command, the root cause and the fix",
+    "A reusable decision tree plus an exit-code reference the learner can carry into the practical assessment"
+  ],
+  "concepts": [
+    "Phase before cause: scheduled, pulled, started, ready, endpoints — stop at the first NO",
+    "Schema-valid is not working: the API server accepts all four broken manifests, so every failure is a runtime failure",
+    "Match the tool to the phase — describe and events for scheduler and kubelet decisions, logs --previous only once a container has run, EndpointSlice for routing",
+    "Control-plane components are static Pods with no controller, no validation and no undo; diagnose with /readyz?verbose and kube-system logs, and never write"
+  ]
+}

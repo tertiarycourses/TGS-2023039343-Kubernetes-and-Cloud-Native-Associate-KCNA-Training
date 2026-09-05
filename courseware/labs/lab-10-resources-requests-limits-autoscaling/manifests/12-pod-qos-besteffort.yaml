@@ -1,0 +1,30 @@
+# QoS class: BestEffort
+# Requirement: NO container sets any request or limit. That is the definition,
+# so this is the one manifest in the whole course that deliberately omits
+# resources - the omission IS the lesson.
+#
+# It uses registry.k8s.io/pause:3.9, a ~700 KiB image whose only job is to
+# sleep, so an unbounded container cannot destabilise the lab cluster.
+#
+# APPLY THIS BEFORE 30-limitrange.yaml. Once a LimitRange with default and
+# defaultRequest values exists in the namespace, BestEffort becomes impossible
+# there: the admission plugin injects resources into every new Pod.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: notice-board
+  namespace: kcna-lab10
+  labels:
+    app: notice-board
+    tier: static
+    qos-demo: besteffort
+spec:
+  containers:
+    - name: board
+      image: registry.k8s.io/pause:3.9
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  terminationGracePeriodSeconds: 3

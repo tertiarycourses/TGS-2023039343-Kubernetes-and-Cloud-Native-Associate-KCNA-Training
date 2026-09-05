@@ -1,0 +1,16 @@
+{
+  "service": "booking-api",
+  "environment": "training",
+  "region": "ap-southeast-1",
+  "listen_port": 8080,
+  "log_level": "info",
+  "quote_cache_ttl_seconds": 300,
+  "downstream": {
+    "quote_api": "http://quote-api.kcna-lab11.svc.cluster.local:80",
+    "tracking_api": "http://tracking-api.kcna-lab15.svc.cluster.local:80"
+  },
+  "limits": {
+    "max_containers_per_booking": 40,
+    "max_weight_kg": 26000
+  }
+}

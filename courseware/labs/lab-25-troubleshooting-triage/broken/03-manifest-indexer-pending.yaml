@@ -1,0 +1,76 @@
+# =========================================================================
+# BROKEN MANIFEST 3 of 4 — ticket DEP-1043
+#
+# Deliberately SCHEMA-VALID. Quantities like "512Gi" and "64" are perfectly
+# legal Kubernetes resource quantities; the API server has no idea how much
+# memory your nodes actually have. The failure is made by the SCHEDULER.
+#
+# <details>
+# BUG      : requests.memory 512Gi and requests.cpu 64 exceed the allocatable
+#            capacity of any single node in a kind cluster. No node can fit
+#            the Pod, so it is never bound.
+# PHASE    : scheduling (BEFORE any image pull — nothing is downloaded)
+# SYMPTOM  : STATUS Pending forever, NODE is <none>, Warning FailedScheduling
+#            with "Insufficient memory" / "Insufficient cpu"
+# FIX      : request what the workload actually needs (50m / 64Mi)
+# </details>
+#
+# THE KEY DISCRIMINATOR: a Pending Pod has NO node and therefore NO container
+# statuses and NO logs. `kubectl logs` on it returns an error. If you find
+# yourself reaching for logs on a Pending Pod, you have skipped a step in the
+# triage order — go back to "is it scheduled?".
+#
+# A SECOND, SUBTLER PENDING CAUSE is included as a commented-out alternative
+# below. Uncomment it (and restore sane resources) to see nodeAffinity produce
+# a different FailedScheduling message: "node(s) didn't match Pod's node
+# affinity/selector". Same STATUS, different root cause, different fix.
+# =========================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manifest-indexer
+  namespace: kcna-lab25
+  labels:
+    app: manifest-indexer
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/intentionally-broken: "true"
+    kcna.tertiaryinfotech.com/ticket: DEP-1043
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: manifest-indexer
+  template:
+    metadata:
+      labels:
+        app: manifest-indexer
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 5
+      # --- Alternative Pending cause (see the note above). ------------------
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: meridian.io/depot-zone
+      #               operator: In
+      #               values: ["sg-tuas-rack-7"]
+      # ----------------------------------------------------------------------
+      containers:
+        - name: indexer
+          image: busybox:1.36
+          command: ["/bin/sh", "-c", "sleep 3600"]
+          resources:
+            requests:
+              # Legal quantities. Impossible on a single-node kind cluster.
+              cpu: "64"
+              memory: 512Gi
+            limits:
+              cpu: "64"
+              memory: 512Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

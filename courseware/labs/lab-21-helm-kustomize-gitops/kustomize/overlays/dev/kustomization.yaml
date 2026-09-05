@@ -1,0 +1,59 @@
+# Lab 21 / Kustomize OVERLAY — dev.
+#
+# Everything below is a DELTA against ../../base. There is no copy of the
+# Deployment here, and that is the point: a reviewer reads this file and sees
+# the complete list of ways dev differs from the base.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kcna-lab21
+
+# Both overlays land in the same namespace (the lab's isolation boundary), so
+# the suffix is what keeps their object names distinct.
+nameSuffix: -dev
+
+resources:
+  - ../../base
+
+# includeSelectors: TRUE here. This label is injected into the Deployment's
+# spec.selector, its pod template labels AND the Service's selector — which is
+# exactly what stops tracklane-dev's Service from picking up tracklane-prod's
+# Pods when both live in one namespace.
+labels:
+  - pairs:
+      app.kubernetes.io/instance: tracklane-dev
+      tracklane.kallangfreight.sg/environment: dev
+    includeSelectors: true
+
+# The `replicas` transformer targets the resource by its ORIGINAL base name
+# ("tracklane"), before nameSuffix is applied.
+replicas:
+  - name: tracklane
+    count: 1
+
+# behavior: merge — keep the base's literals and override only these two.
+# The alternatives are `create` (the default, for a new generator) and
+# `replace` (discard the base's content entirely, used for the lanes file).
+configMapGenerator:
+  - name: tracklane-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=debug
+      - FEATURE_LANE_ETA=true
+      - CACHE_TTL_SECONDS=5
+      - ENVIRONMENT=dev
+  # Dev carries only the four domestic-reach lanes, not the full network.
+  - name: tracklane-lanes
+    behavior: replace
+    files:
+      - shipping-lanes.csv=files/shipping-lanes.csv
+
+# Strategic-merge patch: a YAML fragment that is merged into the target by
+# field. You only write the fields you are changing.
+patches:
+  - path: patch-resources.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: tracklane

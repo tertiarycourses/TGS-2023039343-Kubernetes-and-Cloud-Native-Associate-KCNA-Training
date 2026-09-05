@@ -1,0 +1,123 @@
+# ============================================================================
+# Lab 21 / Step 8 — an Argo CD Application, for READING.
+#
+# ⚠️  DO NOT APPLY THIS FILE. It is deliberately kept OUT of manifests/ so
+#     that `kubectl apply -f manifests/` cannot pick it up by accident.
+#
+# Why it will not work if you try: `argoproj.io/v1alpha1` is a Custom Resource
+# Definition installed by Argo CD. This lab does not install Argo CD, so the
+# API group does not exist on your cluster and the API server will reject it:
+#
+#     error: resource mapping not found for name: "tracklane-dev" ...
+#     ensure CRDs are installed first
+#
+# That error is itself the lesson: a GitOps controller extends the Kubernetes
+# API with its own kinds, and its reconciliation loop is an ordinary
+# controller watching ordinary objects. Nothing magic.
+#
+# This is also why the same CRD reason keeps it out of the graded kubeconform
+# run — schema validation of a CRD kind needs the CRD's schema, which we do
+# not ship.
+# ============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # The Application object itself lives in the Argo CD installation namespace,
+  # NOT in the namespace it deploys to. Argo CD only watches its own namespace
+  # for Applications by default.
+  name: tracklane-dev
+  namespace: argocd
+  # The finalizer makes deleting the Application also delete everything it
+  # created ("cascade delete"). Without it, deleting the Application orphans
+  # the workloads — sometimes what you want, usually not.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    tracklane.kallangfreight.sg/environment: dev
+spec:
+  # ---------------------------------------------------------------------
+  # project — an AppProject that constrains which repos, destinations and
+  # resource kinds this Application may use. "default" permits everything,
+  # which is fine for a demo and wrong for a shared cluster.
+  # ---------------------------------------------------------------------
+  project: default
+
+  # ---------------------------------------------------------------------
+  # source — WHERE THE DESIRED STATE LIVES. This is the whole of GitOps in
+  # one block: Git is the source of truth, and this names the exact commit-
+  # able location. Note there is no "deploy" step anywhere in this file.
+  # ---------------------------------------------------------------------
+  source:
+    repoURL: https://github.com/tertiarycourses/TGS-2023039343-Kubernetes-and-Cloud-Native-Associate-KCNA-Training
+    # targetRevision: a branch, tag, or commit SHA. A branch means "track the
+    # tip"; a tag or SHA means "pin". Production should pin — a mutable
+    # branch reference makes "what is deployed?" unanswerable.
+    targetRevision: main
+    # path: the directory inside the repo. Argo CD auto-detects that this is a
+    # Kustomize directory because it contains kustomization.yaml. Point it at
+    # a directory with a Chart.yaml and it runs `helm template` instead.
+    path: courseware/labs/lab-21-helm-kustomize-gitops/kustomize/overlays/dev
+    # Optional explicit tool configuration. Present here so you can see what
+    # Argo CD would otherwise infer.
+    kustomize:
+      namePrefix: ""
+      commonAnnotations:
+        tracklane.kallangfreight.sg/reconciled-by: argocd
+
+  # ---------------------------------------------------------------------
+  # destination — WHERE IT GOES. `server` is the cluster API endpoint;
+  # `https://kubernetes.default.svc` is the shorthand for "the cluster Argo CD
+  # itself runs in". For a remote cluster you use its registered name instead.
+  # ---------------------------------------------------------------------
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kcna-lab21
+
+  # ---------------------------------------------------------------------
+  # syncPolicy — THE RECONCILIATION CONTRACT. This block is what makes this
+  # GitOps rather than scripted CD.
+  # ---------------------------------------------------------------------
+  syncPolicy:
+    automated:
+      # prune: delete cluster objects that are no longer in Git. Without it,
+      # removing a manifest from Git leaves the object running forever, and
+      # Git stops being the source of truth.
+      prune: true
+      # selfHeal: revert manual `kubectl edit` changes back to Git's state.
+      # This is the anti-drift mechanism. Someone scales a Deployment by hand
+      # at 02:00; the controller scales it back within the sync interval and
+      # records the divergence.
+      selfHeal: true
+      # allowEmpty: false — refuse to sync if the render produces zero
+      # resources. A broken path or a bad kustomization would otherwise be
+      # interpreted as "delete everything".
+      allowEmpty: false
+    syncOptions:
+      # Create the destination namespace if absent.
+      - CreateNamespace=true
+      # Apply with server-side apply, so field ownership is tracked and two
+      # controllers cannot silently fight over the same field.
+      - ServerSideApply=true
+      # Do not treat a resource as out of sync merely because a mutating
+      # webhook or another controller added fields.
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+
+  # ---------------------------------------------------------------------
+  # ignoreDifferences — fields that OTHER controllers legitimately own.
+  # Without this, an HPA changing replicas would make Argo CD report
+  # permanent drift and (with selfHeal) fight the HPA in a loop.
+  # ---------------------------------------------------------------------
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+
+  # How many past sync operations to keep for `argocd app history` / rollback.
+  revisionHistoryLimit: 10

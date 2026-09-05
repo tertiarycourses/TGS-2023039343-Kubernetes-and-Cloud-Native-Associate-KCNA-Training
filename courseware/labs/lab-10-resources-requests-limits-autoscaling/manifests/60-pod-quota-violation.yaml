@@ -1,0 +1,31 @@
+# DELIBERATELY REJECTED - used in the Failure injection section.
+#
+# 900m of CPU request is within the LimitRange max (1 CPU per container), so
+# the LimitRange admits it. It is NOT within the namespace ResourceQuota
+# budget of requests.cpu=1 once the other Pods are counted, so the quota
+# admission plugin rejects the Pod outright. Nothing is created.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cargo-modeller
+  namespace: kcna-lab10
+  labels:
+    app: cargo-modeller
+    tier: analytics
+spec:
+  containers:
+    - name: modeller
+      image: registry.k8s.io/pause:3.9
+      resources:
+        requests:
+          cpu: 900m
+          memory: 128Mi
+        limits:
+          cpu: "1"
+          memory: 256Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  terminationGracePeriodSeconds: 3

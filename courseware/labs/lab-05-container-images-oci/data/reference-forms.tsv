@@ -1,0 +1,13 @@
+# Meridian Freight Pte Ltd — image reference normalisation reference card.
+# Synthetic dataset for KCNA Lab 05. Consumed as ConfigMap `reference-forms`,
+# served by the catalog Pod and read back in Step 4.
+#
+# what_you_write<TAB>what_the_runtime_resolves<TAB>pin_quality
+nginx	docker.io/library/nginx:latest	none - tag is mutable AND implicit
+nginx:1.27-alpine	docker.io/library/nginx:1.27-alpine	weak - tag can be re-pointed
+library/nginx:1.27-alpine	docker.io/library/nginx:1.27-alpine	weak - same as above
+docker.io/library/nginx:1.27-alpine	docker.io/library/nginx:1.27-alpine	weak - fully qualified but still a tag
+nginx@sha256:<64 hex>	docker.io/library/nginx@sha256:<64 hex>	strong - content addressed, immutable
+registry.k8s.io/pause:3.9	registry.k8s.io/pause:3.9	weak - no docker.io default applied
+ghcr.io/meridian/depot-api:2.4.1	ghcr.io/meridian/depot-api:2.4.1	weak - private registry, still a tag
+localhost:5000/depot-api:dev	localhost:5000/depot-api:dev	weak - host:port prefix means "registry", not "repo"

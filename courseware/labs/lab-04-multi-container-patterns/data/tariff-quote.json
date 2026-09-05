@@ -1,0 +1,15 @@
+{
+  "schema": "meridianfreight/tariff-quote/v1",
+  "service": "tariff-backend",
+  "depot_code": "MF-SIN-02",
+  "depot_name": "Tuas Megahub",
+  "currency": "SGD",
+  "quote": {
+    "bay_hour": 51.00,
+    "cold_chain_surcharge": 21.50,
+    "after_hours_multiplier": 1.40,
+    "minimum_billable_hours": 2
+  },
+  "valid_from": "2026-09-01",
+  "valid_to": "2026-09-30"
+}

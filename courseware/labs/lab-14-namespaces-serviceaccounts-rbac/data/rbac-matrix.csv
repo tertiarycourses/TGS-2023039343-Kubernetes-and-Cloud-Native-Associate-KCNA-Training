@@ -1,0 +1,13 @@
+serviceaccount,verb,resource,namespace,expected,granted_by
+ops-reader,get,pods,kcna-lab14,yes,Role/pod-reader via RoleBinding
+ops-reader,list,pods,kcna-lab14,yes,Role/pod-reader via RoleBinding
+ops-reader,watch,pods,kcna-lab14,yes,Role/pod-reader via RoleBinding
+ops-reader,get,pods/log,kcna-lab14,yes,Role/pod-reader subresource rule
+ops-reader,list,configmaps,kcna-lab14,yes,ClusterRole/kcna-lab14-configmap-viewer scoped by a RoleBinding
+ops-reader,delete,pods,kcna-lab14,no,verb not present in any bound rule
+ops-reader,list,secrets,kcna-lab14,no,resource not present in any bound rule
+ops-reader,list,pods,default,no,RoleBinding only grants inside kcna-lab14
+ops-reader,list,configmaps,default,no,a RoleBinding to a ClusterRole still only grants in its own namespace
+deploy-bot,list,pods,kcna-lab14,no,ServiceAccount exists but has no binding at all
+deploy-bot,create,deployments,kcna-lab14,no,ServiceAccount exists but has no binding at all
+default,list,pods,kcna-lab14,no,the auto-created default ServiceAccount is unprivileged

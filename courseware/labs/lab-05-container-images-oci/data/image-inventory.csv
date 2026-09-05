@@ -1,0 +1,9 @@
+# Meridian Freight Pte Ltd — Depot Portal container image inventory (synthetic).
+# Maintained by the platform team; reviewed at every architecture board.
+# Consumed as ConfigMap `image-inventory` and served by the catalog Pod.
+component,image_ref,registry,repository,tag,pin_style,approx_size_mb,base,notes
+depot-web,nginx:1.27-alpine,docker.io,library/nginx,1.27-alpine,tag,22,alpine,static content only
+depot-api,busybox:1.36,docker.io,library/busybox,1.36,tag,2,scratch+busybox,PoC stand-in for the Go API
+depot-jobs,alpine:3.20,docker.io,library/alpine,3.20,tag,4,alpine,batch and cron workloads
+depot-sandbox,registry.k8s.io/pause:3.9,registry.k8s.io,pause,3.9,tag,1,scratch,pod sandbox infra container
+depot-web-locked,nginx@sha256:<digest>,docker.io,library/nginx,none,digest,22,alpine,production pin - digest resolved at release time

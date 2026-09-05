@@ -1,0 +1,31 @@
+# Lab 24 · Part 3 helper — an in-cluster client for curling /metrics and the
+# Prometheus HTTP API. Nothing is exposed outside the cluster.
+#
+# curlimages/curl is not used; alpine:3.20 is already on the approved pinned
+# list and its BusyBox wget is sufficient for every request in this lab.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: metrics-client
+  namespace: kcna-lab24
+  labels:
+    app: metrics-client
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 5
+  containers:
+    - name: shell
+      image: alpine:3.20
+      command: ["/bin/sh", "-c", "sleep 3600"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

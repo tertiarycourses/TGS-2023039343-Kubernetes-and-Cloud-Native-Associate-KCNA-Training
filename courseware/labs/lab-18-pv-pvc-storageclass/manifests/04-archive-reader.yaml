@@ -1,0 +1,65 @@
+# Lab 18 / Step 6 — read the archive back from a DIFFERENT Pod.
+#
+# The seeder Pod that wrote this data no longer exists. If this Pod can still
+# read /archive/manifest-archive.csv then the storage genuinely outlived the
+# workload — which is the entire point of a PersistentVolume and the thing
+# emptyDir (Lab 17) could not give us.
+#
+# The volume is mounted READ-ONLY: an auditor reads the customs archive, it
+# never writes to it.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: archive-auditor
+  namespace: kcna-lab18
+  labels:
+    app.kubernetes.io/name: archive-auditor
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "18"
+spec:
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  volumes:
+    - name: archive
+      persistentVolumeClaim:
+        claimName: archive-claim
+        # Claim-level read-only. Belt and braces with the mount-level flag.
+        readOnly: true
+  containers:
+    - name: auditor
+      image: busybox:1.36
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          set -eu
+          echo "--- provenance written by the (now deleted) seeder Pod ---"
+          cat /archive/PROVENANCE
+          echo "--- archive row count as read back ---"
+          echo "rows_read=$(( $(wc -l < /archive/manifest-archive.csv) - 1 ))"
+          echo "--- can this auditor modify the archive? ---"
+          if touch /archive/audit-tamper 2>/dev/null; then
+            echo "WRITABLE - read-only enforcement failed"
+          else
+            echo "read-only mount refused the write (expected)"
+          fi
+          sleep 3600
+      volumeMounts:
+        - name: archive
+          mountPath: /archive
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]

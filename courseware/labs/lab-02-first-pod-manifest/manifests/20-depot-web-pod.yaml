@@ -1,0 +1,63 @@
+# The reference Pod manifest for this lab. You will hand-author an equivalent
+# file in /tmp first (Step 4-6) and only then compare it against this one.
+#
+# Content is served from the ConfigMap `depot-content`, which is built in Step 3
+# from data/depot-status.html and data/depots.csv.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: depot-web
+  namespace: kcna-lab02
+  labels:
+    app.kubernetes.io/name: depot-web
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: depot-portal
+    app.kubernetes.io/version: 0.1.0-poc
+    kcna.tertiaryinfotech.com/lab: lab-02
+  annotations:
+    meridianfreight.example.com/owner: platform-team
+    meridianfreight.example.com/change-ticket: DP-1042
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 10
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: web
+      image: nginx:1.27-alpine
+      imagePullPolicy: IfNotPresent
+      ports:
+        # Purely informational metadata. It does NOT open, publish or firewall
+        # anything — see README section 4, Step 7.
+        - name: http
+          containerPort: 80
+          protocol: TCP
+      volumeMounts:
+        - name: content
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      readinessProbe:
+        httpGet:
+          path: /index.html
+          port: http
+        initialDelaySeconds: 2
+        periodSeconds: 5
+      securityContext:
+        allowPrivilegeEscalation: false
+  volumes:
+    - name: content
+      configMap:
+        name: depot-content
+        items:
+          - key: index.html
+            path: index.html
+          - key: depots.csv
+            path: depots.csv

@@ -1,0 +1,14 @@
+{
+  "goal": "Give the TrackLane depot ledger stable per-replica identity — ordinal Pod names, per-Pod DNS through a headless Service, and one automatically created PersistentVolumeClaim per ordinal — then prove that identity survives Pod deletion and that the volumes deliberately outlive the StatefulSet.",
+  "produces": [
+    "A three-replica StatefulSet whose Pods each serve a different ledger shard from their own PVC, resolvable at <pod>.<svc>.<ns>.svc.cluster.local.",
+    "Evidence of ordered creation and reverse-ordered termination, and of a deleted Pod reattaching to its original volume with an incremented mount counter.",
+    "A diagnosed NXDOMAIN caused by a StatefulSet whose serviceName names a headless Service that was never created."
+  ],
+  "concepts": [
+    "StatefulSet versus Deployment: stable ordinals and identity versus interchangeable replicas",
+    "Headless Services (clusterIP: None) and per-Pod DNS records",
+    "volumeClaimTemplates: one PVC per ordinal, and why they are not garbage-collected",
+    "podManagementPolicy OrderedReady versus Parallel, and rolling updates with partition"
+  ]
+}

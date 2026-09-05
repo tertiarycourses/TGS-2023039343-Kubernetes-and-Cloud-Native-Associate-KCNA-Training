@@ -1,0 +1,17 @@
+# OPTIONAL — README Appendix C only.
+#
+# A lab-owned namespace for the optional ingress controller. The controller is
+# deliberately NOT installed into kube-system: it is lab infrastructure, it is
+# removed by `helm uninstall` plus `kubectl delete namespace`, and keeping it
+# out of kube-system means nothing this lab does can outlive the lab.
+#
+# Steps 1-8 of the main procedure never create this namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab13-ingress
+  labels:
+    kcna.tertiaryinfotech.com/lab: "lab-13"
+    kcna.tertiaryinfotech.com/day: "3"
+    kcna.tertiaryinfotech.com/role: "ingress-controller"
+    app.kubernetes.io/part-of: meridian-freight

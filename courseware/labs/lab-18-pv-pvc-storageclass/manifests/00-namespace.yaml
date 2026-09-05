@@ -1,0 +1,17 @@
+# Lab 18 — namespace isolation boundary.
+#
+# NOTE FOR CLEANUP: this lab also creates TWO cluster-scoped objects, which a
+# namespace delete cannot remove:
+#   * PersistentVolume  tracklane-archive-pv
+#   * StorageClass      tracklane-retain
+# Section 8 of the README deletes both by explicit name. Nothing else outside
+# kcna-lab18 is created or modified.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab18
+  labels:
+    kubernetes.io/metadata.name: kcna-lab18
+    kcna.tertiaryinfotech.com/course: tgs-2023039343
+    kcna.tertiaryinfotech.com/lab: "18"
+    kcna.tertiaryinfotech.com/day: "4"

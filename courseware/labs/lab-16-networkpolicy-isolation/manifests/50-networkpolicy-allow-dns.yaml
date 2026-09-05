@@ -1,0 +1,37 @@
+# THE POLICY EVERYONE FORGETS.
+#
+# A default-deny EGRESS policy also blocks DNS, because a Pod's DNS query is
+# ordinary UDP/TCP traffic to CoreDNS in kube-system. Without this rule, on an
+# enforcing CNI every Service name in the namespace stops resolving and the
+# symptom is "bad address" - which looks like a DNS outage, not a policy bug.
+#
+# kubernetes.io/metadata.name is a label the API server puts on EVERY Namespace
+# automatically, which makes it the reliable way to select kube-system.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: kcna-lab16
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  # Applies to every Pod in the namespace.
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          # NOTE: namespaceSelector and podSelector inside the SAME list item
+          # are ANDed - "a Pod matching k8s-app=kube-dns IN kube-system".
+          # Put them in two separate list items and they become OR.
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

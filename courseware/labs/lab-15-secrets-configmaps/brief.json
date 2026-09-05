@@ -1,0 +1,14 @@
+{
+  "goal": "Split the Meridian Freight booking-api configuration into ConfigMaps and a Secret, inject each by the safest route, and prove with your own hands that a Kubernetes Secret is base64-encoded rather than encrypted.",
+  "produces": [
+    "A booking-app-config ConfigMap built three ways - from-file, from-env-file and from-literal - kept byte-identical to data/app-settings.json and data/feature-flags.env",
+    "A booking-credentials Secret generated from data/dummy-credentials.env and deliberately never committed as a manifest, decoded live with base64 -d",
+    "Two consumer Pods contrasting env injection with volume injection, including a subPath mount that provably never updates"
+  ],
+  "concepts": [
+    "A Secret is base64-encoded, not encrypted; RBAC, encryption at rest and external stores are the real controls",
+    "env injection freezes values at container start and leaks through /proc/<pid>/environ; volume mounts update live",
+    "A subPath mount is a point-in-time copy and never tracks ConfigMap changes, unlike the directory mount beside it",
+    "A missing key is invisible to apply and to static validation - it surfaces as CreateContainerConfigError"
+  ]
+}

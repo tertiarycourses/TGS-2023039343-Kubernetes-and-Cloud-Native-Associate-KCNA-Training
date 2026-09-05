@@ -1,0 +1,16 @@
+2026-09-05T08:00:01Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=41
+2026-09-05T08:00:04Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=38
+2026-09-05T08:00:07Z depot=MF-SIN-02 path=/api/bays status=200 bytes=1544 latency_ms=52
+2026-09-05T08:00:10Z depot=MF-SIN-02 path=/api/bookings status=201 bytes=96 latency_ms=77
+2026-09-05T08:00:13Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=44
+2026-09-05T08:00:16Z depot=MF-SIN-02 path=/api/trailers status=404 bytes=64 latency_ms=12
+2026-09-05T08:00:19Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=39
+2026-09-05T08:00:22Z depot=MF-SIN-02 path=/api/tariff status=503 bytes=0 latency_ms=3001
+2026-09-05T08:00:25Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=43
+2026-09-05T08:00:28Z depot=MF-SIN-02 path=/api/bays status=200 bytes=1544 latency_ms=55
+2026-09-05T08:00:31Z depot=MF-SIN-02 path=/api/bookings status=201 bytes=96 latency_ms=81
+2026-09-05T08:00:34Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=40
+2026-09-05T08:00:37Z depot=MF-SIN-02 path=/api/trailers status=404 bytes=64 latency_ms=11
+2026-09-05T08:00:40Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=37
+2026-09-05T08:00:43Z depot=MF-SIN-02 path=/api/tariff status=503 bytes=0 latency_ms=3002
+2026-09-05T08:00:46Z depot=MF-SIN-02 path=/api/bookings status=200 bytes=812 latency_ms=42

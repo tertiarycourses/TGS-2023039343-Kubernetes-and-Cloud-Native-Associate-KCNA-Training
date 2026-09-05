@@ -1,0 +1,38 @@
+# Crane controller - safety-critical, must keep running through the
+# maintenance window, so it TOLERATES the taint the learner applies:
+#   mfs.io/maintenance=window:NoSchedule
+#
+# A toleration is permission, not attraction: it lets this Pod be placed on a
+# tainted node, but does nothing to draw it there. Pair it with nodeSelector
+# or nodeAffinity when you also need to steer placement.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crane-controller
+  namespace: kcna-lab09
+  labels:
+    app: crane-controller
+    tier: control
+    placement: toleration
+spec:
+  tolerations:
+    - key: mfs.io/maintenance
+      operator: Equal
+      value: window
+      effect: NoSchedule
+  containers:
+    - name: controller
+      image: registry.k8s.io/pause:3.9
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  terminationGracePeriodSeconds: 3

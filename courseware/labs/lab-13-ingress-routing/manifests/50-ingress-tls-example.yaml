@@ -1,0 +1,38 @@
+# TLS block structure (README Step 7).
+#
+# The `tls` list is the ONLY TLS configuration the Ingress API defines:
+#   - hosts:      the SNI names this certificate covers
+#   - secretName: a Secret of type kubernetes.io/tls in the SAME namespace,
+#                 holding keys tls.crt and tls.key
+#
+# The Ingress object does NOT terminate TLS - the controller does, by loading
+# that Secret. Creating this object without the Secret is legal; the controller
+# would log a warning and serve its default certificate instead.
+#
+# Step 7 shows how to generate a self-signed Secret for
+# secure.meridianfreight.internal. Never use a self-signed certificate outside a
+# lab; in production use cert-manager or your organisation's CA.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: meridian-shop-tls
+  namespace: kcna-lab13
+  labels:
+    app.kubernetes.io/part-of: meridian-freight
+spec:
+  ingressClassName: meridian-edge
+  tls:
+    - hosts:
+        - secure.meridianfreight.internal
+      secretName: meridian-shop-tls-cert
+  rules:
+    - host: secure.meridianfreight.internal
+      http:
+        paths:
+          - path: /catalog
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-svc
+                port:
+                  number: 80

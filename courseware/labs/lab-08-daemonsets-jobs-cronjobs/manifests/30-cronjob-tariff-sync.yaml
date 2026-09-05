@@ -1,0 +1,76 @@
+# Scheduled tariff synchronisation.
+#
+#   schedule: "*/2 * * * *"      -> every two minutes (kept short for the lab;
+#                                   MFS production uses "5 3 * * *")
+#   concurrencyPolicy: Forbid    -> if the previous run is still going, SKIP
+#                                   this one rather than run two at once
+#   startingDeadlineSeconds: 60  -> a run missed by more than 60s is abandoned
+#   successfulJobsHistoryLimit/failedJobsHistoryLimit -> how many finished Jobs
+#                                   are retained for inspection
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tariff-sync
+  namespace: kcna-lab08
+  labels:
+    app: tariff-sync
+    tier: batch
+spec:
+  schedule: "*/2 * * * *"
+  timeZone: "Asia/Singapore"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  suspend: false
+  jobTemplate:
+    metadata:
+      labels:
+        app: tariff-sync
+        tier: batch
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 90
+      template:
+        metadata:
+          labels:
+            app: tariff-sync
+            tier: batch
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sync
+              image: busybox:1.36
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "tariff-sync run at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                  awk -F, 'NR>1 {n++; total+=$3}
+                           END {printf "lanes=%d mean_rate_sgd=%.2f\n", n, total/n}' \
+                    /data/tariff-rates.csv
+                  awk -F, 'NR>1 && $4=="review" {print "FLAGGED " $1 " " $2}' \
+                    /data/tariff-rates.csv
+                  echo "SYNC-OK"
+              volumeMounts:
+                - name: tariffs
+                  mountPath: /data
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+          volumes:
+            - name: tariffs
+              configMap:
+                name: berth-data
+          terminationGracePeriodSeconds: 5

@@ -1,0 +1,14 @@
+{
+  "goal": "Build and read the three classic multi-container Pod patterns — sidecar, adapter and ambassador — plus a v1.29+ native sidecar, and prove what containers in a Pod really share: one network namespace and named volumes, nothing else.",
+  "produces": [
+    "Four running Pods (sidecar, adapter, ambassador, native sidecar) that all consume data/access-seed.log and data/tariff-quote.json",
+    "Prometheus-format metrics produced by an adapter container from a proprietary key=value log it did not write",
+    "An admission-time validation error proving that each container has its own independent volumeMounts list"
+  ],
+  "concepts": [
+    "Containers in a Pod share the network namespace and volumes, not the filesystem root or PID namespace",
+    "Sidecar adds a capability, adapter reshapes an output, ambassador owns the outbound connection",
+    "kubectl logs -c <container> and the error you get when you forget it",
+    "Native sidecars: initContainers with restartPolicy: Always (v1.29+, GA v1.33) give ordering guarantees"
+  ]
+}

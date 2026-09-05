@@ -1,0 +1,14 @@
+{
+  "goal": "Expose one Meridian Freight backend through all four Service shapes at once - ClusterIP, NodePort, LoadBalancer and headless - and record honestly which ones a stock kind cluster can actually deliver.",
+  "produces": [
+    "Four Services over a single booking-edge Deployment, proven by kubectl get svc -o wide to share one selector and one endpoint set",
+    "A pinned NodePort on 30080 reached on the node InternalIP from inside the cluster, plus the kind extraPortMappings config in data/ that would expose it to the host",
+    "A LoadBalancer Service documented and asserted as permanently <pending>, with kubectl describe showing Events: <none> as the proof no controller is watching"
+  ],
+  "concepts": [
+    "The types are nested, not parallel: ClusterIP is inside NodePort is inside LoadBalancer",
+    "nodePort comes from a cluster-wide pool, default 30000-32767 via --service-node-port-range",
+    "type: LoadBalancer is a request that only a cloud-controller-manager or MetalLB can fulfil - kind has neither",
+    "clusterIP: None removes the virtual IP so DNS returns one A record per ready Pod"
+  ]
+}

@@ -1,0 +1,3 @@
+environment,name_suffix,replicas,cpu_request,memory_request,lane_rows,log_level,feature_lane_eta
+dev,-dev,1,50m,64Mi,4,debug,true
+prod,-prod,3,100m,128Mi,9,warn,false

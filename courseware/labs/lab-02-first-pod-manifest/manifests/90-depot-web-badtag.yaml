@@ -1,0 +1,39 @@
+# DELIBERATELY BROKEN — failure injection for README section 6.
+# The tag `1.27-alpin` does not exist (a single dropped character), so the
+# kubelet cannot resolve the image and the Pod ends in ImagePullBackOff.
+# Everything else in this manifest is valid, which is exactly the point:
+# the API server accepts it without complaint.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: depot-web-badtag
+  namespace: kcna-lab02
+  labels:
+    app.kubernetes.io/name: depot-web
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-02
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: web
+      image: nginx:1.27-alpin
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false

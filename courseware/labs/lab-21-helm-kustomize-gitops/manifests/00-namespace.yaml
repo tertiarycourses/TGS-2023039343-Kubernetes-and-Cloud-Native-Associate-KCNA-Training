@@ -1,0 +1,18 @@
+# Lab 21 — namespace isolation boundary.
+#
+# Both the Helm render and both Kustomize overlays target this one namespace.
+# The overlays use nameSuffix (-dev / -prod) so that two "environments" can
+# coexist here without a second namespace, keeping the lab inside its
+# isolation boundary while still demonstrating a real dev/prod split.
+#
+# This lab creates NO cluster-scoped objects and installs NO controller
+# (no Argo CD, no Flux, no Helm release into kube-system).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab21
+  labels:
+    kubernetes.io/metadata.name: kcna-lab21
+    kcna.tertiaryinfotech.com/course: tgs-2023039343
+    kcna.tertiaryinfotech.com/lab: "21"
+    kcna.tertiaryinfotech.com/day: "4"

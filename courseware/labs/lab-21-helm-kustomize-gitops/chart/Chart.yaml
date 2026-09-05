@@ -1,0 +1,36 @@
+# Lab 21 — chart metadata. This file is what makes a directory a Helm chart.
+#
+# Read every field; each one is examinable.
+apiVersion: v2                  # v2 = Helm 3. v1 charts are Helm 2 and are legacy.
+name: tracklane                 # MUST match the directory name (chart/ is renamed on package).
+description: TrackLane shipment-tracking web tier for Kallang Freight Pte Ltd
+type: application               # 'application' installs resources; 'library' only exports helpers.
+
+# version = the version of THE CHART. Bump it whenever templates or defaults
+# change. Semantic versioning is required, and Helm enforces it.
+version: 0.3.0
+
+# appVersion = the version of THE SOFTWARE the chart deploys. It is metadata
+# only — Helm never uses it to pick an image unless a template says so. Quoted
+# because YAML would otherwise read 1.27 as a float.
+appVersion: "1.27"
+
+kubeVersion: ">=1.30.0-0"       # Helm refuses to install on an older cluster.
+
+keywords:
+  - logistics
+  - tracklane
+  - kcna
+home: https://www.tertiarycourses.com.sg/
+maintainers:
+  - name: TrackLane Platform Team
+    email: platform@kallangfreight.example
+
+annotations:
+  tracklane.kallangfreight.sg/owner: platform-engineering
+  tracklane.kallangfreight.sg/tier: web
+
+# NOTE: no `dependencies:` block. A chart that declared, say, a PostgreSQL
+# subchart here would fetch it into charts/ with `helm dependency update` and
+# expose its values under a `postgresql:` key. We keep this chart standalone so
+# that `helm template` needs no network access.

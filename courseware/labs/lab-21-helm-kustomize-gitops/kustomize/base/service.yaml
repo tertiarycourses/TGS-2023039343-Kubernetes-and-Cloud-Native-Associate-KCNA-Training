@@ -1,0 +1,25 @@
+# Lab 21 / Kustomize BASE — Service.
+#
+# The selector here is deliberately minimal. The overlays add an
+# `app.kubernetes.io/instance` label with includeSelectors: true, which
+# injects it into BOTH this selector and the Deployment's selector and pod
+# template — so tracklane-dev and tracklane-prod never select each other's
+# Pods even though they share a namespace.
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracklane
+  labels:
+    app.kubernetes.io/name: tracklane
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: tracklane
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: tracklane
+    app.kubernetes.io/component: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

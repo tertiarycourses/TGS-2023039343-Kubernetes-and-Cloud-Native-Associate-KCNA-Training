@@ -1,0 +1,44 @@
+# DIGEST-PINNED Pod — and the failure injection for README section 6.
+#
+# The digest below is DELIBERATELY STALE. It is a syntactically valid sha256
+# reference that no registry will resolve, which is exactly what a
+# copy-and-pasted digest looks like after the manifest it named was replaced,
+# garbage-collected, or written down wrong.
+#
+# Applying this file unmodified produces ErrImagePull -> ImagePullBackOff.
+# You repair it in Step 6 by substituting the digest YOUR cluster resolved for
+# nginx:1.27-alpine (read from the image-catalog Pod's status.imageID).
+apiVersion: v1
+kind: Pod
+metadata:
+  name: depot-web-locked
+  namespace: kcna-lab05
+  labels:
+    app.kubernetes.io/name: depot-web-locked
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-05
+    kcna.tertiaryinfotech.com/pin: digest
+spec:
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 5
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: web
+      image: nginx@sha256:9c1b5b6f0f6cc1e7d0d2a3c4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718
+      # A digest is immutable, so there is never a reason to re-pull it.
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false

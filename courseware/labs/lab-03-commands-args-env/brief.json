@@ -1,0 +1,14 @@
+{
+  "goal": "Configure a container entirely from outside its image — override ENTRYPOINT and CMD with command/args, inject settings with env, envFrom and the downward API, and mount a JSON dataset — then diagnose a CrashLoopBackOff caused by one missing variable.",
+  "produces": [
+    "An entrypoint-override matrix of three Pods proving how command and args map onto image ENTRYPOINT and CMD",
+    "A booking-config Pod driven by ConfigMaps built from data/route-defaults.env and data/tariff-rates.json",
+    "A CrashLoopBackOff diagnosis read from kubectl logs --previous and lastState.terminated.exitCode"
+  ],
+  "concepts": [
+    "command overrides ENTRYPOINT, args overrides CMD — and command alone discards CMD",
+    "env, envFrom (with prefix and optional), configMapKeyRef and the downward API fieldRef/resourceFieldRef",
+    "$(VAR) expansion inside env values and args happens in the kubelet, before the shell runs",
+    "CrashLoopBackOff is a back-off state, not an error: read exitCode and logs --previous"
+  ]
+}

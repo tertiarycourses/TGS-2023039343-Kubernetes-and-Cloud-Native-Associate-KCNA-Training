@@ -1,0 +1,38 @@
+# FAILURE INJECTION (README section 6). Apply this on purpose.
+#
+# TWO deliberate defects:
+#   1. pathType: prefix   -> lower-case. The enum is case-sensitive and only
+#      accepts Exact, Prefix and ImplementationSpecific. The API server REJECTS
+#      the object with a clear message.
+#   2. no ingressClassName -> a SILENT defect. Once you fix defect 1 the object
+#      is created successfully with CLASS <none>, and on this cluster it routes
+#      nothing because there is no controller at all.
+#      Be precise about WHY, because it is examinable: what happens to a
+#      class-less Ingress is CONTROLLER-DEPENDENT. The
+#      ingressclass.kubernetes.io/is-default-class annotation is one adoption
+#      mechanism among several; some controllers claim class-less Ingresses on
+#      their own terms and others ignore them outright. Either way there is no
+#      error and no event. The fix is the same in every case: name the class.
+#      README section 6.2 and Appendix C step C7 cover this.
+#
+# Note that kubeconform accepts this file: pathType is a plain string in the
+# OpenAPI schema and the enum is enforced by API-server validation.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: meridian-shop-broken
+  namespace: kcna-lab13
+  labels:
+    kcna.tertiaryinfotech.com/intent: failure-injection
+spec:
+  rules:
+    - host: shop.meridianfreight.internal
+      http:
+        paths:
+          - path: /catalog
+            pathType: prefix
+            backend:
+              service:
+                name: catalog-svc
+                port:
+                  number: 80

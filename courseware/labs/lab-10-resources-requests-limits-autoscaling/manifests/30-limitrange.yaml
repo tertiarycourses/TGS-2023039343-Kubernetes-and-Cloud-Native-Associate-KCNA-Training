@@ -1,0 +1,29 @@
+# LimitRange - a per-Container admission policy for the namespace.
+#
+#   defaultRequest : injected as .resources.requests when the Pod omits it
+#   default        : injected as .resources.limits   when the Pod omits it
+#   min / max      : hard bounds; a Pod outside them is rejected at admission
+#
+# Effect on QoS: from the moment this object exists, a Pod that specifies
+# nothing is given 50m/64Mi requests and 500m/256Mi limits, so it becomes
+# Burstable. BestEffort can no longer be created in this namespace.
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mfs-container-limits
+  namespace: kcna-lab10
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 50m
+        memory: 64Mi
+      default:
+        cpu: 500m
+        memory: 256Mi
+      min:
+        cpu: 10m
+        memory: 16Mi
+      max:
+        cpu: "1"
+        memory: 512Mi

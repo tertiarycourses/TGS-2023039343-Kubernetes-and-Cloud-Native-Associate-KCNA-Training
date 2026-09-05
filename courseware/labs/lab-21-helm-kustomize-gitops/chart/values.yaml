@@ -1,0 +1,81 @@
+# Lab 21 — chart DEFAULTS.
+#
+# Every key here is reachable in a template as {{ .Values.<key> }}.
+# A -f file (data/values-dev.yaml, data/values-prod.yaml) is deep-merged OVER
+# this file; a --set flag is merged over that. Precedence, lowest to highest:
+#
+#   chart/values.yaml  <  -f file (left to right)  <  --set  <  --set-file
+#
+# Good practice, all followed below: every key that a template dereferences
+# has a default here, so `helm template ./chart` with no arguments renders
+# successfully. A chart that requires a values file to render at all is a
+# chart nobody can review.
+
+# Which environment this render represents. Used in labels and the ConfigMap.
+environment: default
+
+replicaCount: 2
+
+image:
+  repository: nginx
+  # PINNED. Never `latest` — an unpinned tag makes a rollout unreproducible
+  # and makes `helm rollback` meaningless.
+  tag: "1.27-alpine"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Application configuration. Rendered into a ConfigMap and injected with
+# envFrom, so changing a value here changes the ConfigMap, which changes the
+# checksum annotation on the Deployment, which triggers a rollout.
+config:
+  logLevel: info
+  featureLaneEta: false
+  cacheTtlSeconds: 60
+
+# The shipping-lane dataset. Overridden at render time with:
+#   --set-file lanes.csv=data/shipping-lanes.csv
+# which is how you get a whole file into a value without pasting it here.
+lanes:
+  csv: |
+    lane_code,origin_port,destination_port,mode,transit_days,scope,weekly_sailings
+    SG-MY-PKG,SGSIN,MYPKG,road,1,domestic-reach,42
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 2
+  periodSeconds: 5
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podAnnotations: {}

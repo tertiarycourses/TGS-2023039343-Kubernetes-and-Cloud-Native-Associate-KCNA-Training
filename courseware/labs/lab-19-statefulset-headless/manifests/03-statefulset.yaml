@@ -1,0 +1,183 @@
+# Lab 19 / Step 3 — the depot ledger StatefulSet.
+#
+# Read these five fields before anything else; they are what makes this NOT a
+# Deployment:
+#
+#   serviceName                    binds the set to the headless Service that
+#                                  publishes per-Pod DNS records.
+#   Pod names                      depot-ledger-0/-1/-2 — stable ORDINALS, not
+#                                  the random hash suffix a Deployment gives.
+#   volumeClaimTemplates           one PVC per ordinal, created automatically,
+#                                  named <template>-<pod>, reattached on restart.
+#   podManagementPolicy            OrderedReady => 0 must be Ready before 1 starts.
+#   persistentVolumeClaimRetentionPolicy
+#                                  what happens to those PVCs on delete/scale-down.
+#
+# Each replica reads ITS OWN shard of the ledger dataset, selected by its
+# ordinal, so the three Pods serve provably different content from provably
+# different volumes.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: depot-ledger
+  namespace: kcna-lab19
+  labels:
+    app.kubernetes.io/name: depot-ledger
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "19"
+spec:
+  # MUST name the headless Service. Kubernetes does not validate that the
+  # Service exists; a wrong value here silently costs you per-Pod DNS.
+  serviceName: depot-ledger
+  replicas: 3
+  # OrderedReady (the default): create 0, wait for Ready, create 1, wait,
+  # create 2. Terminate in reverse: 2, then 1, then 0.
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Only Pods with ordinal >= partition are updated. 0 means "all".
+      # Set it to 2 to canary just the highest ordinal.
+      partition: 0
+  # Explicitly spelling out the DEFAULT behaviour so it is visible rather than
+  # implied: PVCs survive both a StatefulSet delete and a scale-down.
+  # (Field is beta and on by default from v1.27, GA in v1.32. On older
+  # clusters the field is simply ignored and the behaviour is the same.)
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: depot-ledger
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: depot-ledger
+        app.kubernetes.io/part-of: tracklane
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: seed
+          configMap:
+            name: tracklane-ledger-seed
+            defaultMode: 0444
+      initContainers:
+        # Runs once per Pod start, BEFORE nginx. It derives the ordinal from
+        # the Pod's own hostname and writes that ordinal's shard onto the
+        # per-Pod PersistentVolume.
+        - name: seed-shard
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              # depot-ledger-2 -> "2". This is the canonical way a StatefulSet
+              # member discovers its own identity.
+              ORD="${HOSTNAME##*-}"
+              ROW="$(grep "^${ORD}," /seed/depot-roster.csv)"
+              DEPOT_CODE="$(echo "$ROW" | cut -d, -f2)"
+              DEPOT_NAME="$(echo "$ROW" | cut -d, -f3)"
+              REGION="$(echo "$ROW" | cut -d, -f4)"
+              SHARD="$(echo "$ROW" | cut -d, -f6)"
+              ENTRIES="$(grep -c ",${SHARD}," /seed/ledger-entries.csv)"
+
+              # Append-only proof that this volume is reattached, not recreated.
+              echo "mounted ${HOSTNAME} $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                >> /ledger/mounts.log
+              MOUNTS="$(grep -c '^mounted ' /ledger/mounts.log)"
+
+              cat > /ledger/index.html <<EOF
+              <h1>TrackLane depot ledger</h1>
+              <p>pod: ${HOSTNAME}</p>
+              <p>ordinal: ${ORD}</p>
+              <p>depot_code: ${DEPOT_CODE}</p>
+              <p>depot_name: ${DEPOT_NAME}</p>
+              <p>region: ${REGION}</p>
+              <p>ledger_shard: ${SHARD}</p>
+              <p>shard_entries: ${ENTRIES}</p>
+              <p>volume_mount_count: ${MOUNTS}</p>
+              EOF
+              echo "ordinal=${ORD} shard=${SHARD} entries=${ENTRIES} mounts=${MOUNTS}"
+          volumeMounts:
+            - name: ledger
+              mountPath: /ledger
+            - name: seed
+              mountPath: /seed
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            capabilities:
+              drop: ["ALL"]
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: ledger
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            # nginx's master process needs to bind :80 and manage worker
+            # ownership, so we do not drop all capabilities here. We DO
+            # forbid privilege escalation and never run privileged.
+            allowPrivilegeEscalation: false
+            privileged: false
+  # ONE PVC PER ORDINAL, created by the StatefulSet controller.
+  # The resulting claims are named  <template-name>-<pod-name>:
+  #     ledger-depot-ledger-0
+  #     ledger-depot-ledger-1
+  #     ledger-depot-ledger-2
+  # A Deployment cannot do this — all its replicas share whatever single PVC
+  # the Pod template names.
+  volumeClaimTemplates:
+    - metadata:
+        name: ledger
+        labels:
+          app.kubernetes.io/name: depot-ledger
+          app.kubernetes.io/part-of: tracklane
+          kcna.tertiaryinfotech.com/lab: "19"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        # kind's default class, backed by the bundled local-path-provisioner.
+        # It uses WaitForFirstConsumer, so each PVC binds as its Pod schedules.
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 128Mi

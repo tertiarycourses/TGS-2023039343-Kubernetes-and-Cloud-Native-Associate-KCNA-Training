@@ -1,0 +1,33 @@
+{{/*
+NOTES.txt is rendered and printed AFTER `helm install` / `helm upgrade`.
+It is not a Kubernetes object and `helm template` does not emit it.
+Use it for the two or three commands the operator needs next — never for
+documentation, which belongs in the chart's README.
+*/}}
+TrackLane {{ .Chart.Name }}-{{ .Chart.Version }} (app {{ .Chart.AppVersion }})
+released as "{{ .Release.Name }}" into namespace "{{ .Release.Namespace }}".
+
+Environment : {{ .Values.environment }}
+Replicas    : {{ .Values.replicaCount }}
+Image       : {{ .Values.image.repository }}:{{ .Values.image.tag }}
+Log level   : {{ .Values.config.logLevel }}
+Lane ETA    : {{ .Values.config.featureLaneEta }}
+{{- if .Values.podDisruptionBudget.enabled }}
+PDB         : minAvailable {{ .Values.podDisruptionBudget.minAvailable }}
+{{- else }}
+PDB         : disabled
+{{- end }}
+
+Check the rollout:
+
+  kubectl -n {{ .Release.Namespace }} rollout status deployment/{{ include "tracklane.fullname" . }}
+
+Reach it from inside the cluster:
+
+  kubectl -n {{ .Release.Namespace }} run curl-probe --rm -it --restart=Never \
+    --image=busybox:1.36 -- wget -qO- http://{{ include "tracklane.fullname" . }}:{{ .Values.service.port }}/
+
+Inspect what was actually released (this reads the release Secret, not the cluster):
+
+  helm -n {{ .Release.Namespace }} get manifest {{ .Release.Name }}
+  helm -n {{ .Release.Namespace }} history {{ .Release.Name }}

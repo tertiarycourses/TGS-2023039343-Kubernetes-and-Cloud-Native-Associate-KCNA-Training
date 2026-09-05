@@ -1,0 +1,14 @@
+{
+  "goal": "Apply the MFS workload resource profiles, prove all three QoS classes from the live API, watch a container get OOMKilled by its own memory limit, then bound the namespace with a LimitRange and ResourceQuota and read an HPA honestly on a cluster with no metrics-server.",
+  "produces": [
+    "Three Pods proved to be Guaranteed, Burstable and BestEffort via .status.qosClass",
+    "An OOMKilled container showing reason=OOMKilled and exit code 137",
+    "A LimitRange plus ResourceQuota that reject an over-budget Pod at admission, and an autoscaling/v2 HPA on the quote-engine Deployment"
+  ],
+  "concepts": [
+    "requests drive scheduling and are the denominator of HPA utilisation; limits drive throttling and OOMKill",
+    "The three QoS classes are derived, never declared - the API server computes .status.qosClass",
+    "LimitRange sets per-container defaults and bounds; ResourceQuota sets an aggregate namespace budget",
+    "An HPA without metrics-server reports <unknown> and ScalingActive=False - the pipeline is missing, not the config"
+  ]
+}

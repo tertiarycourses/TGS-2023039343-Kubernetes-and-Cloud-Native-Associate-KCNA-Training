@@ -1,0 +1,32 @@
+# Lab 18 / Step 9 — DYNAMIC provisioning through the default StorageClass.
+#
+# There is no PersistentVolume for this claim and you will not write one.
+# `standard` is the StorageClass that ships with kind, backed by the
+# local-path-provisioner (rancher.io/local-path). When a Pod that uses this
+# claim is scheduled, the provisioner creates a directory on the node, wraps
+# it in a PersistentVolume named pvc-<uuid>, and binds it here.
+#
+# EXPECT THIS PVC TO SIT IN `Pending` UNTIL STEP 10.
+# `standard` uses volumeBindingMode: WaitForFirstConsumer, so the controller
+# deliberately waits for a consuming Pod before provisioning. The describe
+# output will say:
+#     waiting for first consumer to be created before binding
+# That is the system working as designed, not a fault to be debugged.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: render-cache
+  namespace: kcna-lab18
+  labels:
+    app.kubernetes.io/name: render-cache
+    app.kubernetes.io/part-of: tracklane
+    kcna.tertiaryinfotech.com/lab: "18"
+    tracklane.kallangfreight.sg/tier: bronze
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 256Mi

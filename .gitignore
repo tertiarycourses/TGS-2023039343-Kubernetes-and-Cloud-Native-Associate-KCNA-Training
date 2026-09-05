@@ -1,0 +1,25 @@
+# Private course and local configuration
+.env
+.env.*
+**/.env
+**/.env.*
+.claude/
+.codex/
+courseware/assessment/
+courseware/reference/
+courseware/build/
+courseware/qa/
+assessment/
+reference/
+qa/
+build/
+*.pem
+*.key
+*.p12
+*.pfx
+*kubeconfig*
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+.venv/

@@ -1,0 +1,14 @@
+{
+  "goal": "Hand-author a valid Pod manifest field by field — using kubectl explain and --dry-run=client as the authoring tools — then run it, serve real content from a ConfigMap, and diagnose an ImagePullBackOff caused by a single mistyped tag.",
+  "produces": [
+    "A depot-web Pod in kcna-lab02 serving data/depot-status.html and data/depots.csv from the ConfigMap depot-content",
+    "A learner-authored manifest in /tmp that round-trips cleanly against manifests/20-depot-web-pod.yaml",
+    "A documented ImagePullBackOff diagnosis with the exact kubelet Failed event text"
+  ],
+  "concepts": [
+    "The five top-level fields every object has: apiVersion, kind, metadata, spec, status",
+    "kubectl explain and --dry-run=client -o yaml as manifest authoring aids, not toys",
+    "containerPort is documentation, not a firewall or a publish rule",
+    "Waiting-state reasons: ImagePullBackOff, ErrImagePull and the backoff loop behind them"
+  ]
+}

@@ -1,0 +1,10 @@
+lane_code,origin_port,destination_port,mode,transit_days,scope,weekly_sailings
+SG-MY-PKG,SGSIN,MYPKG,road,1,domestic-reach,42
+SG-MY-JHB,SGSIN,MYJHB,road,1,domestic-reach,56
+SG-MY-PEN,SGSIN,MYPEN,road,2,domestic-reach,21
+SG-ID-BTM,SGSIN,IDBTM,sea,1,domestic-reach,35
+SG-ID-JKT,SGSIN,IDJKT,sea,4,regional,14
+SG-TH-LCH,SGSIN,THLCH,sea,5,regional,10
+SG-VN-SGN,SGSIN,VNSGN,sea,6,regional,8
+SG-CN-SHA,SGSIN,CNSHA,sea,9,long-haul,6
+SG-AU-SYD,SGSIN,AUSYD,air,1,long-haul,12

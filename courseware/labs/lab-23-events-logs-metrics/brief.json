@@ -1,0 +1,14 @@
+{
+  "goal": "Build the incident evidence trail: query Events as API objects with server-side field selectors, drive kubectl logs across containers and restarts, and establish exactly what kubectl top requires on a kind cluster that does not ship metrics-server.",
+  "produces": [
+    "A namespace emitting a real mixed event stream (Normal, Warning FailedMount, Warning BackOff) filtered with compound --field-selector queries",
+    "A two-container Pod proving that only stdout/stderr reaches kubectl logs, plus a crash-looping container whose cause is only visible via --previous",
+    "A completed event-triage worksheet recording each query, what it returned, and whether kubectl top was available (Path A install or Path B skip)"
+  ],
+  "concepts": [
+    "Events are aggregated (count + firstTimestamp) and garbage-collected after --event-ttl, one hour by default — a triage signal, never an audit log",
+    "Field selectors are server-side but restricted to indexed fields: type, reason and involvedObject.* are selectable, message is not",
+    "kubectl logs captures only stdout/stderr, retains one previous container generation, and is bounded by kubelet log rotation — the case for node-level shippers",
+    "kubectl top is an add-on requiring metrics-server behind the aggregation layer; on kind it needs --kubelet-insecure-tls, and it holds no history"
+  ]
+}

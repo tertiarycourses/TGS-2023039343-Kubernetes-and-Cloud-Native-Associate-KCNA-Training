@@ -1,0 +1,14 @@
+{
+  "goal": "Use labels and selectors as the binding mechanism between controllers and Pods, and prove it by watching a ReplicaSet adopt a hand-created Pod and replace one you relabel out of its selector.",
+  "produces": [
+    "A tracking-api ReplicaSet (matchLabels) that adopts an existing Pod instead of creating a third replica",
+    "A berth-status ReplicaSet driven by matchExpressions using In, NotIn and Exists",
+    "A label-audit Pod that reads the MFS service inventory and prints the standard label set"
+  ],
+  "concepts": [
+    "Labels are the only binding between a controller and its Pods - there are no object references",
+    "matchLabels is equality-based AND; matchExpressions adds In, NotIn, Exists and DoesNotExist",
+    "Adoption and orphaning: ownerReferences are added or released purely on label match",
+    "A ReplicaSet selector must be a subset of the template labels or the API server rejects it"
+  ]
+}

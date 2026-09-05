@@ -1,0 +1,19 @@
+# ClusterIP Service so the rollout can be observed as an availability signal
+# rather than a Pod list: curl this from a helper Pod during the update.
+apiVersion: v1
+kind: Service
+metadata:
+  name: freight-portal
+  namespace: kcna-lab07
+  labels:
+    app: freight-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: freight-portal
+    tier: edge
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

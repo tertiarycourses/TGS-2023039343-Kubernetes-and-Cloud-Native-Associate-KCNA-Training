@@ -1,0 +1,11 @@
+depot_code,depot_name,region,bays,cold_chain,shift_pattern,last_audit
+MF-SIN-01,Jurong Port Depot,Singapore West,24,yes,3x8,2026-07-14
+MF-SIN-02,Tuas Megahub,Singapore West,48,yes,3x8,2026-08-02
+MF-SIN-03,Changi Air Freight Annex,Singapore East,16,no,2x12,2026-06-28
+MF-SIN-04,Pasir Panjang Consolidation,Singapore South,32,yes,3x8,2026-08-19
+MF-JHB-01,Senai Cross-Dock,Johor,20,no,2x12,2026-05-30
+MF-JHB-02,Pasir Gudang Yard,Johor,28,yes,3x8,2026-07-21
+MF-KUL-01,Port Klang North Gate,Selangor,36,yes,3x8,2026-08-11
+MF-BKK-01,Laem Chabang Transit,Chonburi,18,no,2x12,2026-04-17
+MF-HAN-01,Hai Phong Bonded Store,Hai Phong,22,yes,3x8,2026-06-09
+MF-JKT-01,Tanjung Priok Staging,Jakarta,26,no,2x12,2026-07-03

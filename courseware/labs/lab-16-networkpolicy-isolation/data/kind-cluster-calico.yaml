@@ -1,0 +1,22 @@
+# kind cluster configuration used by README Appendix A — the OPTIONAL cluster
+# on which NetworkPolicy is actually ENFORCED.
+#
+# This is a kind config (kind.x-k8s.io/v1alpha4), NOT a Kubernetes API object,
+# so it lives in data/ rather than manifests/.
+#
+#   kind create cluster --name kcna-netpol --config data/kind-cluster-calico.yaml
+#
+# disableDefaultCNI: true stops kind installing kindnet. The cluster comes up
+# with every node NotReady and every Pod Pending until YOU install a CNI that
+# implements NetworkPolicy (Calico, Cilium, Antrea, ...). That is expected and
+# is exactly the point of the exercise.
+#
+# podSubnet is set to Calico's conventional default so the manifest needs no
+# edit. Installing the CNI requires internet access from the cluster.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  disableDefaultCNI: true
+  podSubnet: "192.168.0.0/16"
+nodes:
+  - role: control-plane

@@ -1,0 +1,42 @@
+# Declarative equivalent of the two imperative commands in README Step 3:
+#   kubectl create configmap booking-app-config -n kcna-lab15 \
+#     --from-file=app-settings.json=data/app-settings.json \
+#     --from-env-file=data/feature-flags.env \
+#     --from-literal=APP_GREETING="Meridian Freight booking API"
+#
+# app-settings.json below is a byte-for-byte copy of data/app-settings.json and
+# the FEATURE_* keys are the four lines of data/feature-flags.env.
+# verification/checks.sh asserts all of that stays in sync.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: booking-app-config
+  namespace: kcna-lab15
+  labels:
+    app: booking-api
+data:
+  # --from-file: the FILE NAME becomes the key, the file CONTENT becomes the value.
+  app-settings.json: |
+    {
+      "service": "booking-api",
+      "environment": "training",
+      "region": "ap-southeast-1",
+      "listen_port": 8080,
+      "log_level": "info",
+      "quote_cache_ttl_seconds": 300,
+      "downstream": {
+        "quote_api": "http://quote-api.kcna-lab11.svc.cluster.local:80",
+        "tracking_api": "http://tracking-api.kcna-lab15.svc.cluster.local:80"
+      },
+      "limits": {
+        "max_containers_per_booking": 40,
+        "max_weight_kg": 26000
+      }
+    }
+  # --from-env-file: EACH LINE becomes its own key.
+  FEATURE_MULTILEG_QUOTES: "true"
+  FEATURE_LIVE_VESSEL_ETA: "false"
+  FEATURE_BULK_UPLOAD: "true"
+  FEATURE_LEGACY_EDI: "false"
+  # --from-literal
+  APP_GREETING: "Meridian Freight booking API"

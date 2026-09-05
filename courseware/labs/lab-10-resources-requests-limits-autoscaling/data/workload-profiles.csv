@@ -1,0 +1,7 @@
+workload,manifest,cpu_request,cpu_limit,mem_request,mem_limit,expected_qos,note
+berth-ledger,10-pod-qos-guaranteed.yaml,100m,100m,128Mi,128Mi,Guaranteed,requests equal limits for cpu and memory
+rate-quoter,11-pod-qos-burstable.yaml,50m,200m,64Mi,192Mi,Burstable,requests below limits so the container may burst
+notice-board,12-pod-qos-besteffort.yaml,none,none,none,none,BestEffort,no resources declared at all - apply before the LimitRange
+ledger-compactor,20-pod-oomkill-ledger-compactor.yaml,100m,100m,32Mi,32Mi,Guaranteed,memory limit deliberately below the working set - OOMKilled
+quote-engine,40-deployment-quote-engine.yaml,100m,300m,96Mi,256Mi,Burstable,HPA target - 60% utilisation of the 100m request is 60m
+cargo-modeller,60-pod-quota-violation.yaml,900m,1,128Mi,256Mi,Rejected,within the LimitRange max but over the namespace requests.cpu quota

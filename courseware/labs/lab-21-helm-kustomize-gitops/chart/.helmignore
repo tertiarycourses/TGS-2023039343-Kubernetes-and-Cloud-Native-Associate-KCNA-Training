@@ -1,0 +1,16 @@
+# Patterns here are excluded when the chart is packaged with `helm package`.
+# Same syntax as .gitignore.
+.DS_Store
+.git/
+.gitignore
+*.swp
+*.bak
+*.tmp
+*.orig
+*~
+.project
+.idea/
+.vscode/
+# Never package local test values or CI scratch output.
+ci/
+values-local.yaml

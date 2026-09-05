@@ -1,0 +1,123 @@
+# Lab 24 · Part 2 — the scrape TARGET.
+#
+# Two containers sharing one emptyDir:
+#   generator : runs data/generate-metrics.sh, rewriting /www/metrics every 10s
+#   exporter  : nginx serving that file at http://:9100/metrics
+#
+# Together they are a minimal but honest Prometheus exporter: an HTTP endpoint
+# that returns the text exposition format on demand. A real application does
+# the same thing from memory via a client library.
+#
+# replicas: 1 IS LOAD-BEARING. The scrape config addresses this workload
+# through its ClusterIP Service. If there were two replicas, each scrape would
+# hit a random Pod with a different counter value, and the counters would
+# appear to reset on every other scrape. See Step 6.5.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: depot-metrics-sim
+  namespace: kcna-lab24
+  labels:
+    app: depot-metrics-sim
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: depot-metrics-sim
+  template:
+    metadata:
+      labels:
+        app: depot-metrics-sim
+        app.kubernetes.io/part-of: depot-portal
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: metrics-dir
+          emptyDir: {}
+        - name: generator-script
+          configMap:
+            name: depot-metrics-generator
+        - name: nginx-config
+          configMap:
+            name: exporter-nginx-config
+      containers:
+        # ------------------------------------------------------------------
+        - name: generator
+          image: busybox:1.36
+          # Invoked as an argument to sh, so the ConfigMap-projected file does
+          # not need an executable bit (ConfigMap volumes are mounted 0644).
+          command: ["/bin/sh", "/opt/depot/generate-metrics.sh"]
+          volumeMounts:
+            - name: metrics-dir
+              mountPath: /www
+            - name: generator-script
+              mountPath: /opt/depot
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+        # ------------------------------------------------------------------
+        - name: exporter
+          image: nginx:1.27-alpine
+          ports:
+            - name: metrics
+              containerPort: 9100
+              protocol: TCP
+          volumeMounts:
+            - name: metrics-dir
+              mountPath: /usr/share/nginx/html
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/metrics.conf
+              subPath: metrics.conf
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: depot-metrics-sim
+  namespace: kcna-lab24
+  labels:
+    app: depot-metrics-sim
+    app.kubernetes.io/part-of: depot-portal
+spec:
+  type: ClusterIP
+  selector:
+    app: depot-metrics-sim
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: metrics
+      protocol: TCP

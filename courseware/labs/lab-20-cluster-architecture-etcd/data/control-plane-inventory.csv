@@ -1,0 +1,10 @@
+component,deployment_kind,manifest_path,listen_ports,restart_owner,blast_radius,role_summary
+kube-apiserver,StaticPod,/etc/kubernetes/manifests/kube-apiserver.yaml,6443,kubelet,cluster-wide,The only component that talks to etcd; validates authn/authz/admission and serves the REST API
+etcd,StaticPod,/etc/kubernetes/manifests/etcd.yaml,2379;2380,kubelet,total-data-loss,Consistent distributed key-value store holding all cluster state; the only thing that must be backed up
+kube-controller-manager,StaticPod,/etc/kubernetes/manifests/kube-controller-manager.yaml,10257,kubelet,reconciliation-stops,Runs the built-in controller loops that drive actual state toward declared state
+kube-scheduler,StaticPod,/etc/kubernetes/manifests/kube-scheduler.yaml,10259,kubelet,no-new-placements,Assigns Pending Pods to nodes by filtering and scoring feasible nodes
+kubelet,SystemdUnit,/etc/systemd/system/kubelet.service.d/10-kubeadm.conf,10250;10248,systemd,node-workloads,Node agent; the only component that starts containers and the only one that reads the static Pod directory
+kube-proxy,DaemonSet,api-object:kube-system/daemonset/kube-proxy,10256,kubelet,service-vips,Programmes node dataplane rules so Service VIPs reach backing Pods
+coredns,Deployment,api-object:kube-system/deployment/coredns,53;9153,kubelet,cluster-dns,Serves cluster DNS for Services and Pods
+kindnet,DaemonSet,api-object:kube-system/daemonset/kindnet,none,kubelet,pod-network,kind's bundled CNI plugin; provides Pod-to-Pod connectivity on this training cluster
+local-path-provisioner,Deployment,api-object:local-path-storage/deployment/local-path-provisioner,none,kubelet,dynamic-storage,Backs the default StorageClass used in Labs 18 and 19

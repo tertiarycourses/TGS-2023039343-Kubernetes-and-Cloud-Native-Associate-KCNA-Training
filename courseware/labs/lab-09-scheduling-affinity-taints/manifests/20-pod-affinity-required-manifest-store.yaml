@@ -1,0 +1,48 @@
+# Cargo manifest store - REQUIRED node affinity.
+# requiredDuringSchedulingIgnoredDuringExecution is a hard constraint, exactly
+# like nodeSelector but with set operators (In, NotIn, Exists, DoesNotExist,
+# Gt, Lt) and OR across nodeSelectorTerms.
+#
+#   nodeSelectorTerms  are ORed
+#   matchExpressions within one term are ANDed
+#
+# This Pod needs SSD-backed storage and must not land on a node marked for
+# decommissioning.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: manifest-store
+  namespace: kcna-lab09
+  labels:
+    app: manifest-store
+    tier: data
+    placement: required-affinity
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: mfs.io/disk
+                operator: In
+                values:
+                  - ssd
+                  - nvme
+              - key: mfs.io/decommission
+                operator: DoesNotExist
+  containers:
+    - name: store
+      image: registry.k8s.io/pause:3.9
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  terminationGracePeriodSeconds: 3

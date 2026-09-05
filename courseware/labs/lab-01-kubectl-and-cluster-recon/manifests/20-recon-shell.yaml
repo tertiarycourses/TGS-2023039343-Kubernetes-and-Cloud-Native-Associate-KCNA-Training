@@ -1,0 +1,58 @@
+# A tiny, long-lived Pod used as the reconnaissance target.
+# It consumes data/recon-checklist.csv through the ConfigMap `recon-checklist`,
+# which you create in Step 6 with `kubectl create configmap --from-file`.
+#
+# IMPORTANT: applying this file BEFORE the ConfigMap exists is the deliberate
+# failure injection for this lab (see README section 7).
+apiVersion: v1
+kind: Pod
+metadata:
+  name: recon-shell
+  namespace: kcna-lab01
+  labels:
+    app.kubernetes.io/name: recon-shell
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-01
+spec:
+  restartPolicy: Never
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 3000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: shell
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "[recon-shell] Meridian Freight depot reconnaissance checklist"
+          echo "[recon-shell] source file: /etc/depot/recon-checklist.csv"
+          cat /etc/depot/recon-checklist.csv
+          echo "[recon-shell] checklist rows: $(grep -vc '^#' /etc/depot/recon-checklist.csv)"
+          echo "[recon-shell] holding open for kubectl exec"
+          sleep 3600
+      volumeMounts:
+        - name: checklist
+          mountPath: /etc/depot
+          readOnly: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+  volumes:
+    - name: checklist
+      configMap:
+        name: recon-checklist
+        defaultMode: 0444

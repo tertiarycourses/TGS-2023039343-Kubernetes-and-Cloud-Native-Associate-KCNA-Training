@@ -1,0 +1,40 @@
+# Marina Freight Systems — a hand-created Pod that already carries the exact
+# label set the tracking-api ReplicaSet will select on. It is applied BEFORE
+# the ReplicaSet so learners can observe controller ADOPTION: the ReplicaSet
+# takes ownership of this Pod instead of creating a third replica.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tracking-api-legacy
+  namespace: kcna-lab06
+  labels:
+    app: tracking-api
+    tier: edge
+    env: staging
+    release: r24
+    provenance: hand-created
+spec:
+  containers:
+    - name: web
+      image: nginx:1.27-alpine
+      ports:
+        - name: http
+          containerPort: 80
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+          add:
+            - CHOWN
+            - SETGID
+            - SETUID
+            - NET_BIND_SERVICE
+  terminationGracePeriodSeconds: 5

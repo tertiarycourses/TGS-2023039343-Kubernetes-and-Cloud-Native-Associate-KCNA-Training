@@ -1,0 +1,14 @@
+{
+  "goal": "Run the three non-Deployment workload controllers against real MFS port data: a per-node DaemonSet agent, an Indexed Job that splits a work queue across parallel Pods, and a CronJob on a schedule - then fail a Job past its backoffLimit and read the reason.",
+  "produces": [
+    "A berth-agent DaemonSet reporting DESIRED=CURRENT=1 on the single-node kind cluster, reading berth-readings.csv",
+    "A completed Indexed Job (completions 6, parallelism 2) whose six Pods each processed a distinct queue line",
+    "A tariff-sync CronJob with concurrencyPolicy Forbid and a retained Job history"
+  ],
+  "concepts": [
+    "DaemonSet replica count is derived from the node set, never from a replicas field",
+    "completions vs parallelism vs backoffLimit, and Indexed completion mode with JOB_COMPLETION_INDEX",
+    "CronJob schedule, timeZone, concurrencyPolicy and the successful/failed Job history limits",
+    "A Job that exhausts backoffLimit is marked Failed with reason BackoffLimitExceeded and stops retrying"
+  ]
+}

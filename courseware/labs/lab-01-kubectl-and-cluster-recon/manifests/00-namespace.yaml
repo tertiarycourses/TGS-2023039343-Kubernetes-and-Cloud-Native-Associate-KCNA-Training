@@ -1,0 +1,14 @@
+# Lab 01 — Cluster Reconnaissance with kubectl
+# Meridian Freight Pte Ltd · Depot Portal platform
+# Creates the only namespace this lab is allowed to touch.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcna-lab01
+  labels:
+    app.kubernetes.io/part-of: depot-portal
+    kcna.tertiaryinfotech.com/lab: lab-01
+    kcna.tertiaryinfotech.com/day: "1"
+    # Pod Security Admission: enforce the baseline profile inside the lab.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
