@@ -1,8 +1,10 @@
 # Kubernetes and Cloud Native Associate (KCNA) Training — Labs
 
-**Course code:** TGS-2023039343 · **Version:** v6.0
+**Course code:** TGS-2023039343 · **Version:** v6.1
 
 Each folder contains its detailed guide, mock data, Kubernetes manifests and a verification script. Start with Lab 01 and the Learner Guide for workstation setup. The guide in each folder lists its own prerequisites and expected evidence.
+
+Use the [Killercoda Kubernetes Playground](https://killercoda.com/playgrounds/scenario/kubernetes) as the recommended browser-based cluster. Clone the public learner repository in its terminal, enter `courseware/labs`, then open the assigned lab folder. For advanced exercises that require extra cluster components or a longer-lived session, follow the lab-specific local `kind` fallback in the Learner Guide.
 
 ## Day 1 — Cloud Native Foundations & Kubernetes Core Concepts
 

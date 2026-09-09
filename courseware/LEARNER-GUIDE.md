@@ -14,7 +14,7 @@ Conducted by
 
 Tertiary Infotech Academy Pte Ltd · UEN: 201200696W
 
-**Version 6.0**
+**Version 6.1**
 
 ---
 
@@ -27,6 +27,7 @@ Tertiary Infotech Academy Pte Ltd · UEN: 201200696W
 | 3.0 | 17 August 2025 | Legacy LP: third version. | Tertiary Infotech Academy |
 | 4.0 | 17 October 2025 | Legacy LP: company name updated. | Tertiary Infotech Academy |
 | 6.0 | 5 September 2026 | Full rebuild under the Kubernetes and Cloud Native Associate (KCNA) title. Deck rebuilt to the house visual system with native editable charts and mechanism-level diagrams; 25 self-contained labs with runnable manifests, synthetic datasets and verification checks; coverage realigned to the CNCF KCNA curriculum effective 24 Nov 2025 (44/28/16/12) while preserving the registered WSQ outcomes for TSC Solution Architecture ICT-DES-4006-1.1. | Dr. Alfred Ang |
+| 6.1 | 10 September 2026 | Visual refresh using original course-specific ImageGen cover and observability artwork; current KCNA domain blueprint, practice exam, course identity, labs and assessment mappings revalidated. No step-by-step procedures were added to the slide deck. | Dr. Alfred Ang |
 
 ---
 
@@ -34,90 +35,92 @@ Tertiary Infotech Academy Pte Ltd · UEN: 201200696W
 
 *Page numbers refer to the PDF/DOCX rendering of this guide.*
 
-- **How to Use This Guide** — p. 5
-  - What this guide is, and what it is not — p. 5
-  - The three artefacts, and how they relate — p. 5
-  - How to work through it — p. 5
-  - What you are being certified against — p. 6
-  - Conventions used in this guide — p. 6
-- **Before You Start — Cluster Setup** — p. 7
-  - What you need — p. 7
-  - Step 1 — Install a container runtime — p. 7
-  - Step 2 — Install kubectl — p. 8
-  - Step 3 — Install kind (the cluster tool this course is written against) — p. 8
-  - Step 4 — Write a cluster configuration file — p. 9
-  - Step 5 — Create the cluster — p. 9
-  - Step 6 — Verify the cluster — p. 10
-  - Step 7 — Clone the course repository — p. 10
-  - The alternative the registered outline names: minikube — p. 10
-  - Setup troubleshooting — p. 11
-  - Tearing the cluster down — p. 11
-- **Day 1 — Cloud Native Foundations & Kubernetes Core Concepts** — p. 12
-  - Day 1 Learning Focus — p. 12
-  - Day 1 Concepts — p. 12
-  - Day 1 Labs — p. 16
-  - Lab 01 — Cluster Reconnaissance with kubectl — p. 17
-  - Lab 02 — Authoring Your First Pod Manifest — p. 30
-  - Lab 03 — Commands, Arguments and Environment — p. 41
-  - Lab 04 — Multi-Container Pod Patterns: Sidecar, Adapter, Ambassador — p. 51
-  - Lab 05 — Container Images, OCI and the Runtime Interface — p. 61
-- **Day 2 — Workloads, Scheduling & Container Orchestration** — p. 71
-  - Day 2 Learning Focus — p. 71
-  - Day 2 Concepts — p. 71
-  - Day 2 Labs — p. 74
-  - Lab 06 — Labels, Selectors and ReplicaSets — p. 76
-  - Lab 07 — Deployments, Rollout Strategy and Rollback — p. 86
-  - Lab 08 — DaemonSets, Jobs and CronJobs — p. 96
-  - Lab 09 — Scheduling: nodeSelector, Affinity, Taints and Tolerations — p. 107
-  - Lab 10 — Resource Requests, Limits, QoS and Autoscaling — p. 119
-- **Day 3 — Services, Networking & Cluster Security** — p. 133
-  - Day 3 Learning Focus — p. 133
-  - Day 3 Concepts — p. 133
-  - Day 3 Labs — p. 136
-  - Lab 11 — Services, Endpoints and Cluster DNS — p. 138
-  - Lab 12 — Service Types: ClusterIP, NodePort and LoadBalancer — p. 151
-  - Lab 13 — Ingress Resources and HTTP Routing — p. 163
-  - Lab 14 — Namespaces, ServiceAccounts and RBAC — p. 186
-  - Lab 15 — Secrets, ConfigMaps and Safe Injection — p. 199
-  - Lab 16 — NetworkPolicy and Default-Deny Isolation — p. 214
-- **Day 4 — Storage, Cluster Architecture & Application Delivery** — p. 228
-  - Day 4 Learning Focus — p. 228
-  - Day 4 Concepts — p. 228
-  - Day 4 Labs — p. 231
-  - Lab 17 — Volumes: emptyDir, hostPath and the Container Filesystem — p. 232
-  - Lab 18 — PersistentVolumes, Claims and StorageClasses — p. 244
-  - Lab 19 — StatefulSets, Headless Services and Stable Identity — p. 260
-  - Lab 20 — Control Plane Anatomy and etcd Backup/Restore — p. 275
-  - Lab 21 — Packaging and Delivery: Helm, Kustomize and GitOps — p. 294
-- **Day 5 — Observability, Troubleshooting & Assessment** — p. 315
-  - Day 5 Learning Focus — p. 315
-  - Day 5 Concepts — p. 315
-  - Day 5 Labs — p. 318
-  - Lab 22 — Probes, Health and Self-Healing — p. 320
-  - Lab 23 — Events, Logs, Field Selectors and the Metrics Server — p. 331
-  - Lab 24 — Metrics, Prometheus Exposition and the Observability Pipeline — p. 345
-  - Lab 25 — Troubleshooting Triage: Application, Node and Control Plane — p. 361
-- **Quick Command Reference** — p. 378
-  - Context, identity and discovery — p. 378
-  - Creating, reading and changing objects — p. 378
-  - Workloads, controllers and rollouts — p. 379
-  - Scheduling and capacity — p. 380
-  - Services, networking and DNS — p. 380
-  - Security: identity, RBAC and configuration — p. 380
-  - Storage — p. 381
-  - Observability and troubleshooting — p. 381
-  - Packaging, delivery and the control plane — p. 382
-- **Assessment Preparation** — p. 383
-  - The two instruments — p. 383
-  - What each Written Assessment question covers — p. 383
-  - What each Practical Performance task covers — p. 383
-  - How to prepare — p. 384
-  - The assessment flow, in order — p. 384
-  - A note on the external KCNA exam — p. 385
-- **Support** — p. 386
-  - Contact — p. 386
-  - Links you will need — p. 386
-  - Course identity — p. 386
+- **How to Use This Guide** — p. 6
+  - What this guide is, and what it is not — p. 6
+  - The three artefacts, and how they relate — p. 6
+  - How to work through it — p. 6
+  - What you are being certified against — p. 7
+  - Conventions used in this guide — p. 7
+- **Before You Start — Cluster Setup** — p. 8
+  - Recommended path — Killercoda Kubernetes Playground — p. 8
+  - Local fallback — kind — p. 8
+  - What you need — p. 8
+  - Step 1 — Install a container runtime — p. 9
+  - Step 2 — Install kubectl — p. 9
+  - Step 3 — Install kind (the cluster tool this course is written against) — p. 10
+  - Step 4 — Write a cluster configuration file — p. 10
+  - Step 5 — Create the cluster — p. 11
+  - Step 6 — Verify the cluster — p. 11
+  - Step 7 — Clone the course repository — p. 12
+  - The alternative the registered outline names: minikube — p. 12
+  - Setup troubleshooting — p. 12
+  - Tearing the cluster down — p. 13
+- **Day 1 — Cloud Native Foundations & Kubernetes Core Concepts** — p. 14
+  - Day 1 Learning Focus — p. 14
+  - Day 1 Concepts — p. 14
+  - Day 1 Labs — p. 18
+  - Lab 01 — Cluster Reconnaissance with kubectl — p. 19
+  - Lab 02 — Authoring Your First Pod Manifest — p. 32
+  - Lab 03 — Commands, Arguments and Environment — p. 43
+  - Lab 04 — Multi-Container Pod Patterns: Sidecar, Adapter, Ambassador — p. 53
+  - Lab 05 — Container Images, OCI and the Runtime Interface — p. 63
+- **Day 2 — Workloads, Scheduling & Container Orchestration** — p. 73
+  - Day 2 Learning Focus — p. 73
+  - Day 2 Concepts — p. 73
+  - Day 2 Labs — p. 76
+  - Lab 06 — Labels, Selectors and ReplicaSets — p. 78
+  - Lab 07 — Deployments, Rollout Strategy and Rollback — p. 88
+  - Lab 08 — DaemonSets, Jobs and CronJobs — p. 98
+  - Lab 09 — Scheduling: nodeSelector, Affinity, Taints and Tolerations — p. 109
+  - Lab 10 — Resource Requests, Limits, QoS and Autoscaling — p. 121
+- **Day 3 — Services, Networking & Cluster Security** — p. 135
+  - Day 3 Learning Focus — p. 135
+  - Day 3 Concepts — p. 135
+  - Day 3 Labs — p. 138
+  - Lab 11 — Services, Endpoints and Cluster DNS — p. 140
+  - Lab 12 — Service Types: ClusterIP, NodePort and LoadBalancer — p. 153
+  - Lab 13 — Ingress Resources and HTTP Routing — p. 165
+  - Lab 14 — Namespaces, ServiceAccounts and RBAC — p. 188
+  - Lab 15 — Secrets, ConfigMaps and Safe Injection — p. 201
+  - Lab 16 — NetworkPolicy and Default-Deny Isolation — p. 216
+- **Day 4 — Storage, Cluster Architecture & Application Delivery** — p. 230
+  - Day 4 Learning Focus — p. 230
+  - Day 4 Concepts — p. 230
+  - Day 4 Labs — p. 233
+  - Lab 17 — Volumes: emptyDir, hostPath and the Container Filesystem — p. 234
+  - Lab 18 — PersistentVolumes, Claims and StorageClasses — p. 246
+  - Lab 19 — StatefulSets, Headless Services and Stable Identity — p. 262
+  - Lab 20 — Control Plane Anatomy and etcd Backup/Restore — p. 277
+  - Lab 21 — Packaging and Delivery: Helm, Kustomize and GitOps — p. 296
+- **Day 5 — Observability, Troubleshooting & Assessment** — p. 317
+  - Day 5 Learning Focus — p. 317
+  - Day 5 Concepts — p. 317
+  - Day 5 Labs — p. 320
+  - Lab 22 — Probes, Health and Self-Healing — p. 322
+  - Lab 23 — Events, Logs, Field Selectors and the Metrics Server — p. 333
+  - Lab 24 — Metrics, Prometheus Exposition and the Observability Pipeline — p. 347
+  - Lab 25 — Troubleshooting Triage: Application, Node and Control Plane — p. 363
+- **Quick Command Reference** — p. 380
+  - Context, identity and discovery — p. 380
+  - Creating, reading and changing objects — p. 380
+  - Workloads, controllers and rollouts — p. 381
+  - Scheduling and capacity — p. 382
+  - Services, networking and DNS — p. 382
+  - Security: identity, RBAC and configuration — p. 382
+  - Storage — p. 383
+  - Observability and troubleshooting — p. 383
+  - Packaging, delivery and the control plane — p. 384
+- **Assessment Preparation** — p. 385
+  - The two instruments — p. 385
+  - What each Written Assessment question covers — p. 385
+  - What each Practical Performance task covers — p. 385
+  - How to prepare — p. 386
+  - The assessment flow, in order — p. 386
+  - A note on the external KCNA exam — p. 387
+- **Support** — p. 388
+  - Contact — p. 388
+  - Links you will need — p. 388
+  - Course identity — p. 388
 
 ---
 
@@ -138,7 +141,7 @@ It is **not** a transcript of the slide deck. The deck moves quickly, uses diagr
 
 | Artefact | What it is for | Where it lives |
 |---|---|---|
-| **Slide deck** — *Kubernetes and Cloud Native Associate (KCNA) Training-v6.0.pptx* | Delivery in the classroom: diagrams, worked examples, decision trees, failure walkthroughs | LMS · https://lms-tms.tertiaryinfotech.com/ |
+| **Slide deck** — *Kubernetes and Cloud Native Associate (KCNA) Training-v6.1.pptx* | Delivery in the classroom: diagrams, worked examples, decision trees, failure walkthroughs | LMS · https://lms-tms.tertiaryinfotech.com/ |
 | **This Learner Guide** | Study text and the authoritative lab procedures | LMS · https://lms-tms.tertiaryinfotech.com/ |
 | **Lab folders** — `courseware/labs/<slug>/` | The runnable material: `manifests/`, `data/`, `verification/` and a `README.md` identical in substance to the lab section here | Course repository |
 
@@ -181,10 +184,39 @@ The course additionally covers the current CNCF **Kubernetes and Cloud Native As
 
 ## Before You Start — Cluster Setup
 
-Every lab in this guide runs against a Kubernetes cluster you create on your own machine and own completely. You need three things: a **container runtime**, a **local cluster tool**, and **kubectl**. Allow 30–40 minutes the first time.
+The recommended classroom environment is the **Killercoda Kubernetes Playground**, which provides a browser terminal and a disposable Kubernetes cluster without installing software. A local `kind` cluster remains available as a fallback for advanced exercises that need extra components or a longer session.
 
 > **A standing rule for this course.** Only ever operate on a cluster you created for this course. Do not point these labs at a shared development cluster, a company staging cluster, or anything reachable from a kubeconfig you were given. Several labs deliberately break application resources; Lab 20 inspects control-plane and backup evidence without restoring etcd. Check `kubectl config current-context` before you start, every time.
 >
+
+
+### Recommended path — Killercoda Kubernetes Playground
+
+1. Open `https://killercoda.com/playgrounds/scenario/kubernetes` in a current browser and sign in if prompted.
+2. Select **Kubernetes Playground** and wait until the terminal reports that the scenario is ready.
+3. Confirm that the cluster is reachable:
+
+```bash
+kubectl cluster-info
+kubectl get nodes
+```
+
+1. Download the learner lab repository and enter its lab directory:
+
+```bash
+git clone https://github.com/tertiarycourses/TGS-2023039343-Kubernetes-and-Cloud-Native-Associate-KCNA-Training.git
+cd TGS-2023039343-Kubernetes-and-Cloud-Native-Associate-KCNA-Training/courseware/labs
+```
+
+1. Open the folder for the assigned lab and follow its `README.md`. Every lab has its own mock data, YAML manifests, expected evidence and verification script.
+2. Treat the playground as temporary. Save required evidence before the session ends and start a fresh playground when instructed by the trainer.
+
+Lab 13 (Ingress), Lab 16 (NetworkPolicy), Lab 20 (control-plane evidence) and Lab 21 (Helm/Kustomize/GitOps) may require the extra setup documented in their own READMEs. If the hosted playground prevents that setup, use the local `kind` path below.
+
+
+### Local fallback — kind
+
+For a local cluster, you need three things: a **container runtime**, a **local cluster tool**, and **kubectl**. Allow 30–40 minutes the first time.
 
 
 ### What you need
@@ -22935,7 +22967,7 @@ The WSQ assessment above and the CNCF **KCNA** examination are separate things. 
 | Retake | One retake included with the exam purchase |
 | Eligibility window | 12 months from purchase |
 
-The current KCNA blueprint, effective 24 November 2025, weights the four domains as follows. Source: CNCF Curriculum repository, KCNA_Curriculum.pdf (github.com/cncf/curriculum), revision effective 24 Nov 2025. Retrieved 5 Sep 2026.
+The current KCNA blueprint, effective 24 November 2025, weights the four domains as follows. Source: CNCF Curriculum repository, KCNA_Curriculum.pdf (github.com/cncf/curriculum), revision effective 24 Nov 2025. Retrieved 10 Sep 2026.
 
 | Domain | Weight | Competencies |
 |---|---|---|
@@ -22973,6 +23005,7 @@ If anything in this guide does not work on your machine, ask during class — th
 | Practice exam | Timed multiple-choice practice against the KCNA blueprint | https://exams.tertiaryinfotech.com/practice-exams/linuxfoundation/linuxfoundation-kcna |
 | Course page | Registered outline, dates, fees and funding eligibility | https://www.tertiarycourses.com.sg/wsq-kubernetes-and-cloud-native-associate-kcna-training.html |
 | Lab repository | All 25 lab folders: manifests, datasets and verification scripts | https://github.com/tertiarycourses/TGS-2023039343-Kubernetes-and-Cloud-Native-Associate-KCNA-Training |
+| Killercoda Kubernetes Playground | Recommended browser-based Kubernetes cluster and terminal | https://killercoda.com/playgrounds/scenario/kubernetes |
 
 
 ### Course identity
@@ -22983,8 +23016,8 @@ If anything in this guide does not work on your machine, ask during class — th
 | TGS reference number | TGS-2023039343 |
 | TSC | Solution Architecture (ICT-DES-4006-1.1) |
 | Duration | 40 hours over 5 days (37 training + 3 assessment) |
-| Document | Learner Guide v6.0 |
-| Effective date | 5 September 2026 |
+| Document | Learner Guide v6.1 |
+| Effective date | 10 September 2026 |
 
 
 ---
