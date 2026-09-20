@@ -171,7 +171,20 @@ Every lab ends with its own cleanup section. Labs that create a cluster-scoped o
 
 ## Course materials
 
-The slide deck, Learner Guide and Lesson Plan are distributed to enrolled learners on the LMS at [https://lms-tms.tertiaryinfotech.com/](https://lms-tms.tertiaryinfotech.com/). Assessment papers are confidential and are not published in this repository.
+The full courseware package is published in [`courseware/`](courseware/README.md), in both its rendered and editable forms:
+
+| Material | Formats |
+|---|---|
+| Slide deck | [PPTX](courseware/Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.1.pptx) · [PDF](courseware/Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.1.pdf) |
+| Learner Guide | [DOCX](courseware/LG-Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.1.docx) · [PDF](courseware/LG-Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.1.pdf) · [Markdown](courseware/LG-Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.1.md) |
+| Lesson Plan | [DOCX](courseware/LP-Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.1.docx) · [PDF](courseware/LP-Kubernetes%20and%20Cloud%20Native%20Associate%20%28KCNA%29%20Training-v6.1.pdf) |
+| Labs | [25 labs with manifests, data and verification](courseware/labs/README.md) |
+
+Enrolled learners also receive these on the LMS at [https://lms-tms.tertiaryinfotech.com/](https://lms-tms.tertiaryinfotech.com/).
+
+### What is not published here
+
+Assessment papers and answer keys, trainer-only source reference material, build tooling and QA renders, superseded versions, and the course application pack are confidential and are deliberately excluded from this public repository.
 
 ## Support
 

@@ -5,21 +5,36 @@
 **/.env.*
 .claude/
 .codex/
+
+# Confidential: assessment papers, answer keys and source reference material
 courseware/assessment/
 courseware/reference/
-courseware/build/
-courseware/qa/
 assessment/
 reference/
-qa/
+
+# Private build tooling, QA renders and superseded versions
+courseware/build/
+courseware/qa/
+courseware/assets/
+courseware/archive/
 build/
+qa/
+
+# Course application / provider submission pack (not learner-facing)
+course_application/
+
+# Credentials
 *.pem
 *.key
 *.p12
 *.pfx
 *kubeconfig*
+
+# Local noise
 __pycache__/
+**/__pycache__/
 *.pyc
 .DS_Store
+**/.DS_Store
 node_modules/
 .venv/
